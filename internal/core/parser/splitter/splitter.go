@@ -6,6 +6,7 @@ import (
 )
 
 var varLineRe = regexp.MustCompile(`^@(\w+)\s*=\s*(.+)$`)
+var blockCommentRe = regexp.MustCompile(`^[!@#$%&].*`)
 
 // Recovers all possible variables inside a .http / .rest file.
 // Variables should be declared as @var = value per line.
@@ -32,24 +33,25 @@ func RequestSplitter(file []byte) []string {
 		block = strings.TrimSpace(block)
 		if block == "" { continue }
 
+		block = strings.NewReplacer("\r\n", "\n", "\r", "\n").Replace(block)
+
 		// remove unwanted comments before anything
-		matched, _ := regexp.MatchString(`^[!@#$%&].*`, block)
-		if matched { continue }
+		if blockCommentRe.MatchString(block) { continue }
 		
-		// at this point, the blocks may containt a comment inside the ### separator.
+		// at this point, the blocks may contain a comment inside the ### separator.
 		// it may be treated as "<space> GET Weather" or just "<space>"
 		// the first line will always be a comment or at least an empty space
 		// it need to be ignored
 		separatorComment, rest, found := strings.Cut(block, "\n"); 
 
 		// formatting the rest of the block by trimming, excluding comments, etc.
-		if found && !startsWithMethod(separatorComment){
+		if found && !startsWithMethod(separatorComment) {
 			rest = removeComments(rest)
 			rest = resolveVariables(rest, GetVariables(file))
 			block = strings.TrimSpace(rest)
 		}
 
-		if block != "" {
+		if block != "" && startsWithMethod(rest) {
 			cleanBlocks = append(cleanBlocks, block)
 		}
 	}

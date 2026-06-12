@@ -1,20 +1,19 @@
 package models
 
 import (
-	"encoding/json"
 	"fmt"
+	"time"
 )
 
 var HttpMethods = []string{
 	"GET", "POST", "PUT", "DELETE", "PATCH", "HEAD", "OPTIONS",
 }
 
-// TODO: implemment more body types
 type Tokens struct {
 	Method  string
 	URL     string
 	Headers map[string]string
-	Body    json.RawMessage
+	Body    string
 }
 
 func (t Tokens) String() string {
@@ -23,7 +22,19 @@ func (t Tokens) String() string {
 		bodyStr = string(t.Body)
 	}
 	return fmt.Sprintf(
-		"{Method: %q, URL: %q, Headers: %v, Body: %q}", 
+		"{\n  Method: %q, \n  URL: %q, \n  Headers: %v, \n  Body: %q\n}",
 		t.Method, t.URL, t.Headers, bodyStr,
 	)
+}
+
+type Response struct {
+    StatusCode int
+    Headers    map[string]string
+    Body       string
+    Duration   time.Duration
+}
+
+type ResponseReceivedMsg struct {
+    Response Response
+    Err      error
 }

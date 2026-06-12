@@ -1,42 +1,32 @@
 package runner
 
 import (
-	"fmt"
-	"io"
-	"log"
 	"net/http"
-
+	"strings"
 	"github.com/twodigitss/apio/internal/core/parser/models"
 )
 
-// NOTE: obviously this is going to be finished.
-func Run(tok models.Tokens){
-	switch tok.Method {
-		case "GET": {
-			res, err := http.Get(tok.URL)
-			if err != nil { fmt.Print("Error:", err); return }
-			defer res.Body.Close()
+var client *http.Client = &http.Client{}
 
-			bodyBytes, err := io.ReadAll(res.Body)
-			if err != nil {
-				log.Fatalf("Failed to read body: %v", err)
-			}
+func Run(tok models.Tokens) (http.Response, error){
+	req, err := http.NewRequest(
+		tok.Method, tok.URL, 
+		strings.NewReader(tok.Body),
+	)
 
-			fmt.Println(string(bodyBytes))
-		}
-
-		case "POST": {
-			res, err := http.Post(tok.URL, tok.Headers["Content-Type"], nil)
-			if err != nil { fmt.Print("Error:", err); return }
-			defer res.Body.Close()
-
-			bodyBytes, err := io.ReadAll(res.Body)
-			if err != nil {
-				log.Fatalf("Failed to read body: %v", err)
-			}
-
-			fmt.Println(string(bodyBytes))
-		}
-		default: return
+	if err != nil {
+		return http.Response{}, err
 	}
+
+	for k,v := range tok.Headers{
+		req.Header.Add(k, v)
+	}
+
+	resp, err := client.Do(req)
+	if err != nil {
+		return http.Response{}, err
+	}
+
+	return *resp, nil
+
 }
