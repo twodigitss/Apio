@@ -25,7 +25,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 		// The "down" and "j" keys move the cursor down
 		case "down", "j":
-			if m.cursor < len(m.choices)-1 {
+			if m.cursor < len(m.requests)-1 {
 				m.cursor++
 			}
 

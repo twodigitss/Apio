@@ -10,10 +10,10 @@ import (
 func (m Model) View() tea.View {
 	// The header
 	var s strings.Builder
-	s.WriteString("What should we buy at the market?\n\n")
+	s.WriteString("Requests Found\n\n")
 
 	// Iterate over our choices
-	for i, choice := range m.choices {
+	for i, choice := range m.requests {
 
 		// Is the cursor pointing at this choice?
 		cursor := " " // no cursor
@@ -27,8 +27,11 @@ func (m Model) View() tea.View {
 			checked = "x" // selected!
 		}
 
+		style := StyleHttpMethod(choice.Method)
 		// Render the row
-		s.WriteString(fmt.Sprintf("%s [%s] %s\n", cursor, checked, choice))
+		s.WriteString(fmt.Sprintf("%s [%s] %s %s\n", 
+			cursor, checked, style.Render(choice.Method), choice.URL,
+		))
 	}
 
 	// The footer

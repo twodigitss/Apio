@@ -3,11 +3,11 @@ package splitter
 import (
 	"regexp"
 	"strings"
-	"github.com/twodigitss/apio/internal/core/parser/models"
+	"github.com/twodigitss/apio/internal/shared"
 )
 
 func startsWithMethod(line string) bool {
-	for _, m := range models.HttpMethods {
+	for _, m := range shared.HttpMethods {
 		if strings.HasPrefix(strings.TrimSpace(line), m+" ") {
 			return true
 		}

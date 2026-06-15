@@ -2,12 +2,8 @@ package models
 
 import (
 	"fmt"
-	"time"
 )
 
-var HttpMethods = []string{
-	"GET", "POST", "PUT", "DELETE", "PATCH", "HEAD", "OPTIONS",
-}
 
 type Tokens struct {
 	Method  string
@@ -16,7 +12,7 @@ type Tokens struct {
 	Body    string
 }
 
-func (t Tokens) String() string {
+func (t Tokens) Print() string {
 	bodyStr := ""
 	if len(t.Body) > 0 {
 		bodyStr = string(t.Body)
@@ -27,14 +23,7 @@ func (t Tokens) String() string {
 	)
 }
 
-type Response struct {
-    StatusCode int
-    Headers    map[string]string
-    Body       string
-    Duration   time.Duration
+func (t Tokens) Label() string { 
+	return t.Method+" "+t.URL 
 }
 
-type ResponseReceivedMsg struct {
-    Response Response
-    Err      error
-}
