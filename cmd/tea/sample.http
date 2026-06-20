@@ -28,7 +28,7 @@ Token: Bearer jwtstring
 }
 
 ### Get user
-PUT https://{{api}}/users/1
+GET https://{{api}}/users/1
 Accept: application/json
 
 ### Get user
@@ -47,3 +47,14 @@ Accept: application/json
 OPTIONS https://{{api}}/users/1
 Accept: application/json
 
+### Update a post (ponytail: minimum PUT request)
+PUT https://{{api}}/posts/1
+Content-Type: application/json
+Accept: application/json
+
+{
+  "id": 1,
+  "title": "apio test updated",
+  "body": "updated from apio",
+  "userId": 3
+}

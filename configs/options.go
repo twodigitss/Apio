@@ -7,19 +7,20 @@ import (
 )
 
 var (
-	DefaultPath string = "."
 	WorkingDir string = "."
 )
 
 func Init() error {
 	wd, err := os.Getwd()
-	if err != nil { return err }
+	if err != nil {
+		return err
+	}
 
 	WorkingDir = wd
 
 	return nil
 }
 
-func SetWorkingDir(path string){
+func SetWorkingDir(path string) {
 	WorkingDir = shared.ExpandPath(path)
 }

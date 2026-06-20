@@ -1,15 +1,17 @@
 package data
 
-import "time"
+import (
+	"net/http"
+	"time"
+)
+
+var res http.Response
 
 type Response struct {
-	StatusCode int
-	Headers    map[string]string
-	Body       string
-	Duration   time.Duration
-}
-
-type ResponseReceivedMsg struct {
-	Response Response
-	Err      error
+	Body          string
+	ContentLength int64
+	Headers       map[string]string
+	Status        string
+	StatusCode    int
+	Duration      time.Duration
 }

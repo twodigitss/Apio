@@ -4,7 +4,6 @@ import (
 	"fmt"
 )
 
-
 type Tokens struct {
 	Method  string
 	URL     string
@@ -23,7 +22,6 @@ func (t Tokens) Print() string {
 	)
 }
 
-func (t Tokens) Label() string { 
-	return t.Method+" "+t.URL 
+func (t Tokens) Label() string {
+	return t.Method + " " + t.URL
 }
-

@@ -16,7 +16,9 @@ func GetVariables(file []byte) map[string]string {
 	for line := range strings.SplitSeq(string(file), "\n") {
 		if strings.HasPrefix(line, "@") {
 			match := varLineRe.FindStringSubmatch(line)
-			if match == nil { continue }
+			if match == nil {
+				continue
+			}
 
 			vars[match[1]] = match[2]
 		}
@@ -24,25 +26,29 @@ func GetVariables(file []byte) map[string]string {
 	return vars
 }
 
-// Obtains raw request blocks delimited by ### 
+// Obtains raw request blocks delimited by ###
 // ignores comments and variable definitions
 func RequestSplitter(file []byte) []string {
 	var cleanBlocks []string
 
 	for block := range strings.SplitSeq(string(file), "###") {
 		block = strings.TrimSpace(block)
-		if block == "" { continue }
+		if block == "" {
+			continue
+		}
 
 		block = strings.NewReplacer("\r\n", "\n", "\r", "\n").Replace(block)
 
 		// remove unwanted comments before anything
-		if blockCommentRe.MatchString(block) { continue }
-		
+		if blockCommentRe.MatchString(block) {
+			continue
+		}
+
 		// at this point, the blocks may contain a comment inside the ### separator.
 		// it may be treated as "<space> GET Weather" or just "<space>"
 		// the first line will always be a comment or at least an empty space
 		// it need to be ignored
-		separatorComment, rest, found := strings.Cut(block, "\n"); 
+		separatorComment, rest, found := strings.Cut(block, "\n")
 
 		// formatting the rest of the block by trimming, excluding comments, etc.
 		if found && !startsWithMethod(separatorComment) {
@@ -58,4 +64,3 @@ func RequestSplitter(file []byte) []string {
 
 	return cleanBlocks
 }
-
