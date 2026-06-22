@@ -15,8 +15,8 @@ func main() {
 	configs.Init()
 
 	thisDir, err := finder.GetFiles(".")
-	if err != nil || len(thisDir)<=0 {
-		if len(thisDir) <= 0 { 
+	if err != nil || len(thisDir) <= 0 {
+		if len(thisDir) <= 0 {
 			err = fmt.Errorf("This dir is empty")
 		}
 		log.Fatal("Error loading files from given directory:", err)

@@ -6,7 +6,7 @@ import (
 
 	"github.com/twodigitss/apio/configs"
 	"github.com/twodigitss/apio/internal/core/finder"
-	"github.com/twodigitss/apio/internal/core/parser"
+	"github.com/twodigitss/apio/internal/core/parser/lexer"
 )
 
 func main() {
@@ -15,8 +15,8 @@ func main() {
 	configs.Init()
 
 	thisDir, err := finder.GetFiles("")
-	if err != nil || len(thisDir)<=0 {
-		if len(thisDir) <= 0 { 
+	if err != nil || len(thisDir) <= 0 {
+		if len(thisDir) <= 0 {
 			err = fmt.Errorf("This dir is empty")
 		}
 		log.Fatal("Error loading files from given directory:", err)
@@ -27,7 +27,7 @@ func main() {
 		log.Fatal("Error decoding file:", err)
 	}
 
-	_, err = core.FileToArrTokens(file)
+	_, err = lexer.FileToArrTokens(file)
 	if err != nil {
 		log.Fatal("Error decoding file:", err)
 	}

@@ -4,8 +4,11 @@ import (
 	"net/http"
 	"os"
 
+	"charm.land/bubbles/v2/spinner"
+	"charm.land/bubbles/v2/viewport"
 	tea "charm.land/bubbletea/v2"
-	core "github.com/twodigitss/apio/internal/core/parser"
+	"charm.land/lipgloss/v2"
+	"github.com/twodigitss/apio/internal/core/parser/lexer"
 	"github.com/twodigitss/apio/internal/core/parser/models"
 )
 
@@ -23,26 +26,50 @@ type Model struct {
 
 	cursor int
 	// selected int
-	loading bool
-	Width   int
-	Height  int
+	loading  bool
+	Width    int
+	Height   int
+	spinner  spinner.Model
+	viewport viewport.Model
 }
 
 func InitialModel(dir []os.DirEntry, file []byte) Model {
-	tokens, _ := core.FileToArrTokens(file)
+	tokens, _ := lexer.FileToArrTokens(file)
+	s := spinner.New()
+	s.Spinner = spinner.Dot
+	s.Style = lipgloss.NewStyle().Foreground(lipgloss.Color("205"))
+
+	var currentRequest models.Tokens
+	if len(tokens) > 0 {
+		currentRequest = tokens[0]
+	}
+
+	// ponytail: configure viewport pager with custom keymap to avoid conflict with main menu navigation
+	vp := viewport.New()
+	vp.KeyMap = viewport.DefaultKeyMap()
+	vp.KeyMap.Down.SetKeys("ctrl+j")
+	vp.KeyMap.Up.SetKeys("ctrl+k")
+	vp.MouseWheelEnabled = true
+	if len(tokens) > 0 {
+		vp.SetContent(currentRequest.Print())
+	}
 
 	return Model{
-		files:       dir,
-		currentFile: file,
-		requests:    tokens,
-		cursor:      0,
-		response:    http.Response{},
-		// selected:    0,
-		loading: false,
+		files:          dir,
+		currentFile:    file,
+		requests:       tokens,
+		currentRequest: currentRequest,
+		cursor:         0,
+		response:       http.Response{},
+		// selected:       0,
+		loading:  false,
+		spinner:  s,
+		viewport: vp,
 	}
 }
 
 func (m Model) Init() tea.Cmd {
 	// Just return `nil`, which means "no I/O right now, please."
-	return nil
+	// return nil
+	return m.spinner.Tick
 }

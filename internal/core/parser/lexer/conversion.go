@@ -1,10 +1,9 @@
-package core
+package lexer
 
 import (
 	"fmt"
 	"log"
 
-	"github.com/twodigitss/apio/internal/core/parser/lexer"
 	"github.com/twodigitss/apio/internal/core/parser/models"
 	"github.com/twodigitss/apio/internal/core/parser/splitter"
 )
@@ -20,10 +19,12 @@ func FileToArrTokens(file []byte) ([]models.Tokens, error) {
 	// 	fmt.Println("\n", "-----",i,"-----", "\n", part, )
 	// }
 
-	var requests []models.Tokens;
+	var requests []models.Tokens
 	for _, part := range parts {
-		req, err := lexer.Lexer(part)
-		if err != nil { log.Fatal("Error parsing block:", err) }
+		req, err := Lexer(part)
+		if err != nil {
+			log.Fatal("Error parsing block:", err)
+		}
 
 		requests = append(requests, req)
 	}

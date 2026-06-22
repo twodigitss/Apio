@@ -2,21 +2,20 @@ package ui
 
 import (
 	"fmt"
-	// "net/http"
 	"strings"
 
-	// tea "charm.land/bubbletea/v2"
 	tea "charm.land/bubbletea/v2"
 	"charm.land/lipgloss/v2"
-	// "github.com/twodigitss/apio/configs"
+	"github.com/twodigitss/apio/internal/ui/data"
 )
 
 func (m Model) View() tea.View {
-	sidebar := m.renderSidebar()
-	viewer := m.renderViewer()
 
-	sidebarWidth := m.Width / 2
+	sidebarWidth := m.Width / 3
 	viewerWidth := m.Width - sidebarWidth
+
+	sidebar := m.renderSidebar(sidebarWidth)
+	viewer := m.renderViewer()
 
 	right := lipgloss.NewStyle().Width(viewerWidth).
 		PaddingLeft(5).
@@ -27,8 +26,8 @@ func (m Model) View() tea.View {
 	left := lipgloss.NewStyle().
 		Width(sidebarWidth).
 		BorderRight(true).
-		BorderStyle(lipgloss.NormalBorder()).
-		BorderForeground(lipgloss.Color("#3C3C3C")).
+		// BorderStyle(lipgloss.NormalBorder()).
+		// BorderForeground(lipgloss.Color("#3C3C3C")).
 		PaddingLeft(5).
 		PaddingRight(5).
 		PaddingTop(2).
@@ -36,17 +35,22 @@ func (m Model) View() tea.View {
 
 	v := tea.NewView(lipgloss.JoinHorizontal(lipgloss.Top, left, right))
 	v.AltScreen = true
+	v.MouseMode = tea.MouseModeCellMotion
 	return v
 }
 
-func (m Model) renderSidebar() string {
+func (m Model) renderSidebar(width int) string {
 	var s strings.Builder
-	s.WriteString("Press q to quit.\n\n")
+	// s.WriteString("Press q to quit.\n\n")
 	// s.WriteString("Requests Found\n\n")
 	for i, choice := range m.requests {
 		cursor := " "
 		if m.cursor == i {
-			cursor = ">"
+			cursor = lipgloss.NewStyle().
+				Background(lipgloss.Color("#f5f5f5")).
+				PaddingLeft(1).
+				Blink(true).
+				Render("")
 		}
 
 		// checked := " "
@@ -63,18 +67,39 @@ func (m Model) renderSidebar() string {
 
 		s.WriteString(
 			fmt.Sprintf("%s %s %s\n",
-				cursor, style.Render(choice.Method), choice.URL,
+				cursor, style.Render(choice.Method), data.Truncate(choice.URL, width-25),
 			))
 	}
 	return s.String()
 }
 
 func (m Model) renderViewer() string {
-	if m.response.StatusCode == 0 {
-		// return "No response yet.\n"
-		return m.currentRequest.Print()
+	if m.loading {
+		return m.spinner.View() + " loading..."
 	}
 
-	// ponytail: render the cached response body instead of reading from stream in View
-	return fmt.Sprintf("Status Code: %d \n\n%s\n", m.response.StatusCode, m.responseBody)
+	// ponytail: render the viewport view which handles vertical scrolling
+	vpView := m.viewport.View()
+
+	// ponytail: display scroll percentage at the bottom
+	percent := m.viewport.ScrollPercent()
+	var percentStr string
+	if percent >= 1.0 {
+		percentStr = "100%"
+	} else if percent <= 0.0 {
+		percentStr = "0%"
+	} else {
+		percentStr = fmt.Sprintf("%2.f%%", percent*100)
+	}
+
+	footerText := fmt.Sprintf(" %s ", percentStr)
+	footerStyle := lipgloss.NewStyle().Foreground(lipgloss.Color("#555555"))
+	footerVal := footerStyle.Render(footerText)
+
+	width := m.viewport.Width()
+	dashCount := max(width-lipgloss.Width(footerVal), 0)
+	dashes := strings.Repeat(" ", dashCount)
+	footer := dashes + footerVal
+
+	return vpView + "\n" + footer
 }

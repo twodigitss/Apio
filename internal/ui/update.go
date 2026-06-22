@@ -1,41 +1,76 @@
 package ui
 
 import (
+	"fmt"
 	"io"
 	"log"
 	"net/http"
 
 	tea "charm.land/bubbletea/v2"
 	"github.com/twodigitss/apio/internal/core/runner"
+	"github.com/twodigitss/apio/internal/ui/data"
 )
 
 func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+	var (
+		cmd  tea.Cmd
+		cmds []tea.Cmd
+	)
+
 	switch msg := msg.(type) {
+
+	case data.RunResponseMsg:
+		m.loading = false
+		if msg.Err != nil {
+			// FIX: do something with this
+			log.Fatal("Error running block:", msg.Err)
+		}
+		m.response = msg.Response
+		m.responseBody = msg.Body
+
+		// ponytail: update viewport content with response details
+		m.viewport.SetContent(fmt.Sprintf("Status Code: %d \n\n%s\n", m.response.StatusCode, m.responseBody))
+		m.viewport.GotoTop()
+
 	case tea.WindowSizeMsg:
 		m.Width = msg.Width
 		m.Height = msg.Height
 
-	// Is it a key press?
+		// ponytail: adjust viewport size to fit the remaining space on the right side
+		sidebarWidth := msg.Width / 3
+		viewerWidth := msg.Width - sidebarWidth
+		vpWidth := viewerWidth - 10
+		vpHeight := msg.Height - 6 // Top padding: 2, Footer: 2, Safety margin: 2
+		if vpWidth < 0 {
+			vpWidth = 0
+		}
+		if vpHeight < 0 {
+			vpHeight = 0
+		}
+		m.viewport.SetWidth(vpWidth)
+		m.viewport.SetHeight(vpHeight)
+
 	case tea.KeyPressMsg:
-
-		// Cool, what was the actual key pressed?
 		switch msg.String() {
-
-		// These keys should exit the program.
 		case "ctrl+c", "q":
 			return m, tea.Quit
 
-		// The "up" and "k" keys move the cursor up
 		case "up", "k":
 			if m.cursor > 0 {
 				m.cursor--
 			}
 
+			//in view.go i use statuscode=0 to unrender the response
+			//but since i set the response to the interface, statuscode
+			//is already zero. dont forget
 			m.response = http.Response{}
 			m.responseBody = ""
 			m.currentRequest = m.requests[m.cursor]
 
-		// The "down" and "j" keys move the cursor down
+			// ponytail: show the current selected request's source in the viewport
+			m.viewport.SetContent(m.currentRequest.Print())
+			m.viewport.GotoTop()
+
 		case "down", "j":
 			if m.cursor < len(m.requests)-1 {
 				m.cursor++
@@ -45,54 +80,55 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.responseBody = ""
 			m.currentRequest = m.requests[m.cursor]
 
-		// The "enter" key and the space bar toggle the selected state
-		// for the item that the cursor is pointing at.
-		// case "space":
-		// if m.selected == m.cursor {
-		// 	m.selected = -1
-		// } else {
-		// 	m.selected = m.cursor
-		// m.response = http.Response{}
-		// m.responseBody = ""
-		// m.currentRequest = m.requests[m.cursor]
-		// }
+			// ponytail: show the current selected request's source in the viewport
+			m.viewport.SetContent(m.currentRequest.Print())
+			m.viewport.GotoTop()
 
 		case "enter":
-			// if m.selected == -1 {
-			// 	return m, nil
-			// }
+			m.loading = true
+			req := m.requests[m.cursor]
 
-			// var i int = m.selected
-			// if configs.RunAtCursor {
-			// 	i = m.cursor
-			// }
-
-			res, err := runner.Run(m.requests[m.cursor])
-
-			if err != nil {
-				// FIX: do something with this
-				log.Fatal("Error running block:", err)
-			}
-
-			m.response = res
-
-			if res.Body != nil {
-				bodyBytes, _ := io.ReadAll(res.Body)
-				m.responseBody = string(bodyBytes)
-				res.Body.Close()
-			} else {
-				m.responseBody = ""
+			return m, func() tea.Msg {
+				res, err := runner.Run(req)
+				if err != nil {
+					return data.RunResponseMsg{Err: err}
+				}
+				var bodyBytes []byte
+				if res.Body != nil {
+					bodyBytes, _ = io.ReadAll(res.Body)
+					res.Body.Close()
+				}
+				return data.RunResponseMsg{
+					Response: res,
+					Body:     string(bodyBytes),
+				}
 			}
 
 		case "c":
 			m.response.Body = nil
 			m.response.StatusCode = 0
 			m.responseBody = ""
+
+			// ponytail: reset viewport back to showing the current request
+			m.viewport.SetContent(m.currentRequest.Print())
+			m.viewport.GotoTop()
 		}
 
 	}
 
-	// Return the updated model to the Bubble Tea runtime for processing.
-	// Note that we're not returning a command.
-	return m, nil
+	// ponytail: update spinner and viewport models to handle ticks, key bindings, and mouse events
+	m.spinner, cmd = m.spinner.Update(msg)
+	if cmd != nil {
+		cmds = append(cmds, cmd)
+	}
+
+	m.viewport, cmd = m.viewport.Update(msg)
+	if cmd != nil {
+		cmds = append(cmds, cmd)
+	}
+
+	if len(cmds) == 0 {
+		return m, nil
+	}
+	return m, tea.Batch(cmds...)
 }

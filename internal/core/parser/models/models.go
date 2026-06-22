@@ -1,7 +1,7 @@
 package models
 
 import (
-	"fmt"
+	"encoding/json"
 )
 
 type Tokens struct {
@@ -11,15 +11,37 @@ type Tokens struct {
 	Body    string
 }
 
+type printing struct {
+	Method  string            `json:"Method"`
+	Url     string            `json:"Url"`
+	Headers map[string]string `json:"Headers"`
+	Body    any               `json:"Body"`
+}
+
 func (t Tokens) Print() string {
-	bodyStr := ""
+	var bodyVal any = ""
 	if len(t.Body) > 0 {
-		bodyStr = string(t.Body)
+		var parsed any
+		if err := json.Unmarshal([]byte(t.Body), &parsed); err == nil {
+			bodyVal = parsed
+		} else {
+			bodyVal = t.Body
+		}
 	}
-	return fmt.Sprintf(
-		"{\n  Method: %q, \n  URL: %q, \n  Headers: %v, \n  Body: %q\n}",
-		t.Method, t.URL, t.Headers, bodyStr,
-	)
+
+	b := printing{
+		Method:  t.Method,
+		Url:     t.URL,
+		Headers: t.Headers,
+		Body:    bodyVal,
+	}
+
+	b_, err := json.MarshalIndent(b, "", "    ")
+	if err != nil {
+		return ""
+	}
+
+	return string(b_)
 }
 
 func (t Tokens) Label() string {

@@ -8,13 +8,13 @@ import (
 )
 
 var styles map[string]string = map[string]string{
-	"GET":     "#85f2a8",
-	"POST":    "#E8B208", //#85baf2
-	"PUT":     "#127AA8",
-	"DELETE":  "#EC3E5C",
-	"PATCH":   "#8B5CF6",
-	"HEAD":    "#139C8D",
-	"OPTIONS": "#5F61E4",
+	"GET":     "#A8E6CF",
+	"POST":    "#FFD3B6",
+	"PUT":     "#A9DEF9",
+	"DELETE":  "#FFADAD",
+	"PATCH":   "#D8B4F8",
+	"HEAD":    "#A0E7E5",
+	"OPTIONS": "#FFC6FF",
 }
 
 func StyleHttpMethod(line string) lipgloss.Style {
@@ -27,8 +27,8 @@ func StyleHttpMethod(line string) lipgloss.Style {
 
 	return lipgloss.NewStyle().
 		Bold(true).
-		Foreground(lipgloss.Color(styles[prefix])).
-		// Background(lipgloss.Color("#121212")).
+		Foreground(lipgloss.Color("#000")).
+		Background(lipgloss.Color(styles[prefix])).
 		PaddingLeft(1).
 		PaddingRight(1)
 

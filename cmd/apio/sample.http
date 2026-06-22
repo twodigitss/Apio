@@ -19,26 +19,42 @@ POST https://{{api}}/posts
 Content-Type: application/json
 Accept: application/json
 Token: Bearer jwtstring
-Host: https://{{api}}/posts
+# this comment's purpose is to obstaculize the splitter
 
 {
-  "title": "apio test",
-  "body": "sent from apio",
-  "userId": 3
+  "title" : "apio test",
+  "body" : "sent from apio",
+  "userId" : 3
 }
 
 ### Get user
 GET https://{{api}}/users/1
 Accept: application/json
 
-### different body variations
-POST https://jsonplaceholder.typicode.com/posts
+### Get user
+DELETE https://{{api}}/users/1
+Accept: application/json
+
+### Get user
+PATCH https://{{api}}/users/1
+Accept: application/json
+
+### Get user
+HEAD https://{{api}}/users/1
+Accept: application/json
+
+### Get user
+OPTIONS https://{{api}}/users/1
+Accept: application/json
+
+### Update a post (ponytail: minimum PUT request)
+PUT https://{{api}}/posts/1
 Content-Type: application/json
 Accept: application/json
 
-[
-  "hahahaha", 
-  21, 
-  true,
-  {{user}}
-]
+{
+  "id": 1,
+  "title": "apio test updated",
+  "body": "updated from apio",
+  "userId": 3
+}
