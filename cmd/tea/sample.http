@@ -5,11 +5,20 @@
 @api = jsonplaceholder.typicode.com
 @user = twodigitss
 
-# Common useless comment
-### Get weather forecast
-GET https://{{api}}/todos/1
+### Get user
+GET https://{{api}}/users/1
 Content-Type: application/json
 Accept: application/json
+
+### imagenes
+GET https://picsum.photos/500
+Content-Type: image/jpeg)
+
+### xml
+GET https://cdn.animenewsnetwork.com/encyclopedia/api.xml?title=4658
+
+### html
+GET https://api.dicebear.com/7.x/bottts/svg?seed=Luis
 
 ###Create a post
 ### Useless separator comment to obstaculize
@@ -24,12 +33,9 @@ Token: Bearer jwtstring
 {
   "title" : "apio test",
   "body" : "sent from apio",
+  "user": "{{user}}",
   "userId" : 3
 }
-
-### Get user
-GET https://{{api}}/users/1
-Accept: application/json
 
 ### Get user
 DELETE https://{{api}}/users/1

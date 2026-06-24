@@ -1,8 +1,10 @@
 package splitter
 
 import (
+	"encoding/json"
 	"regexp"
 	"strings"
+
 	"github.com/twodigitss/apio/internal/shared"
 )
 
@@ -27,13 +29,16 @@ func removeComments(s string) string {
 }
 
 var templateVarRe = regexp.MustCompile(`\{\{(\w+)\}\}`)
+
 func resolveVariables(s string, vars map[string]string) string {
-	return templateVarRe.ReplaceAllStringFunc(s, 
-	func(match string) string {
-		key := templateVarRe.FindStringSubmatch(match)[1]
-		if val, ok := vars[key]; ok {
-			return val
-		}
-		return match // si no existe en el map, lo deja igual
-	})
+	return templateVarRe.ReplaceAllStringFunc(s,
+		func(match string) string {
+			key := templateVarRe.FindStringSubmatch(match)[1]
+			if val, ok := vars[key]; ok {
+				// return val
+				b, _ := json.Marshal(val)
+				return string(b[1 : len(b)-1])
+			}
+			return match // si no existe en el map, lo deja igual
+		})
 }

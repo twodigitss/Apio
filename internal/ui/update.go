@@ -5,8 +5,11 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"strings"
 
 	tea "charm.land/bubbletea/v2"
+	"github.com/twodigitss/apio/internal/core/finder"
+	"github.com/twodigitss/apio/internal/core/parser/models"
 	"github.com/twodigitss/apio/internal/core/runner"
 	"github.com/twodigitss/apio/internal/ui/data"
 )
@@ -25,8 +28,17 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			// FIX: do something with this
 			log.Fatal("Error running block:", msg.Err)
 		}
+		contentType := msg.Response.Header.Get("Content-Type")
+
+		if strings.Contains(contentType, "image/") ||
+			strings.Contains(contentType, "application/octet-stream") {
+			m.responseBody = fmt.Sprintf("[Binary content — %s]\n[%d bytes]",
+				contentType, len(msg.Body))
+		} else {
+			m.responseBody = msg.Body
+		}
 		m.response = msg.Response
-		m.responseBody = msg.Body
+		// m.responseBody = msg.Body
 
 		// ponytail: update viewport content with response details
 		m.viewport.SetContent(fmt.Sprintf("Status Code: %d \n\n%s\n", m.response.StatusCode, m.responseBody))
@@ -51,7 +63,19 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.viewport.SetHeight(vpHeight)
 
 	case tea.KeyPressMsg:
+
+		if m.showHelp {
+			if msg.String() == "?" || msg.String() == "h" || msg.String() == "esc" {
+				m.showHelp = false
+			}
+			return m, nil
+		}
+
 		switch msg.String() {
+		case "?", "h":
+			m.showHelp = !m.showHelp
+			return m, nil
+
 		case "ctrl+c", "q":
 			return m, tea.Quit
 
@@ -103,6 +127,26 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					Body:     string(bodyBytes),
 				}
 			}
+
+		case "r":
+			var reloadedRequests []models.Tokens
+			newContent, err := finder.ReloadFiles()
+			reloadedRequests = newContent
+			if err != nil {
+				reloadedRequests = m.requests
+			}
+
+			if m.cursor >= len(m.requests) {
+				m.cursor = len(m.requests) - 1
+			}
+			if m.cursor < 0 {
+				m.cursor = 0
+			}
+
+			m.requests = reloadedRequests
+			m.currentRequest = m.requests[m.cursor]
+			m.viewport.SetContent(m.currentRequest.Print())
+			m.viewport.GotoTop()
 
 		case "c":
 			m.response.Body = nil

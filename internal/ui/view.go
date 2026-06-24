@@ -17,6 +17,13 @@ func (m Model) View() tea.View {
 	sidebar := m.renderSidebar(sidebarWidth)
 	viewer := m.renderViewer()
 
+	if m.showHelp {
+		help := renderHelp()
+		v := tea.NewView(lipgloss.Place(m.Width, m.Height,
+			lipgloss.Center, lipgloss.Center, help))
+		v.AltScreen = true
+		return v
+	}
 	right := lipgloss.NewStyle().Width(viewerWidth).
 		PaddingLeft(5).
 		PaddingRight(5).
@@ -26,8 +33,6 @@ func (m Model) View() tea.View {
 	left := lipgloss.NewStyle().
 		Width(sidebarWidth).
 		BorderRight(true).
-		// BorderStyle(lipgloss.NormalBorder()).
-		// BorderForeground(lipgloss.Color("#3C3C3C")).
 		PaddingLeft(5).
 		PaddingRight(5).
 		PaddingTop(2).
@@ -41,8 +46,6 @@ func (m Model) View() tea.View {
 
 func (m Model) renderSidebar(width int) string {
 	var s strings.Builder
-	// s.WriteString("Press q to quit.\n\n")
-	// s.WriteString("Requests Found\n\n")
 	for i, choice := range m.requests {
 		cursor := " "
 		if m.cursor == i {
@@ -53,17 +56,7 @@ func (m Model) renderSidebar(width int) string {
 				Render("")
 		}
 
-		// checked := " "
-		// if m.selected == i {
-		// 	checked = "x"
-		// }
-
 		style := StyleHttpMethod(choice.Method)
-
-		// var line string = "%s [%s] %s %s\n"
-		// if configs.RunAtCursor {
-		// 	line = "%s %s %s\n"
-		// }
 
 		s.WriteString(
 			fmt.Sprintf("%s %s %s\n",
@@ -75,7 +68,7 @@ func (m Model) renderSidebar(width int) string {
 
 func (m Model) renderViewer() string {
 	if m.loading {
-		return m.spinner.View() + " loading..."
+		return m.spinner.View() + " Loading..."
 	}
 
 	// ponytail: render the viewport view which handles vertical scrolling
@@ -102,4 +95,28 @@ func (m Model) renderViewer() string {
 	footer := dashes + footerVal
 
 	return vpView + "\n" + footer
+}
+
+func renderHelp() string {
+	content := `
+  Navigation
+  j / ↓     Move down
+  k / ↑     Move up
+  
+  Viewport
+  ctrl+j    Scroll down
+  ctrl+k    Scroll up
+  
+  Actions
+  enter     Execute request
+  r         Reload file
+  c         Clear response
+  h / ?     Toggle help
+  q         Quit
+`
+	return lipgloss.NewStyle().
+		// Border(lipgloss.RoundedBorder()).
+		// BorderForeground(lipgloss.Color("#7D56F4")).
+		Padding(1, 3).
+		Render(content)
 }

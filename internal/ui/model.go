@@ -22,22 +22,22 @@ type Model struct {
 	currentRequest models.Tokens
 
 	response     http.Response
-	responseBody string // ponytail: cached response body string to avoid double-reads and nil pointer panics
+	responseBody string
 
-	cursor int
-	// selected int
+	cursor   int
 	loading  bool
 	Width    int
 	Height   int
 	spinner  spinner.Model
 	viewport viewport.Model
+	showHelp bool
 }
 
 func InitialModel(dir []os.DirEntry, file []byte) Model {
 	tokens, _ := lexer.FileToArrTokens(file)
 	s := spinner.New()
 	s.Spinner = spinner.Dot
-	s.Style = lipgloss.NewStyle().Foreground(lipgloss.Color("205"))
+	s.Style = lipgloss.NewStyle().Foreground(lipgloss.Color("#cfe4ef"))
 
 	var currentRequest models.Tokens
 	if len(tokens) > 0 {
@@ -61,10 +61,9 @@ func InitialModel(dir []os.DirEntry, file []byte) Model {
 		currentRequest: currentRequest,
 		cursor:         0,
 		response:       http.Response{},
-		// selected:       0,
-		loading:  false,
-		spinner:  s,
-		viewport: vp,
+		loading:        false,
+		spinner:        s,
+		viewport:       vp,
 	}
 }
 

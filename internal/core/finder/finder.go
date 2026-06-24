@@ -2,10 +2,13 @@ package finder
 
 import (
 	"fmt"
-	"github.com/twodigitss/apio/configs"
-	"github.com/twodigitss/apio/internal/shared"
 	"os"
 	"path/filepath"
+
+	"github.com/twodigitss/apio/configs"
+	"github.com/twodigitss/apio/internal/core/parser/lexer"
+	"github.com/twodigitss/apio/internal/core/parser/models"
+	"github.com/twodigitss/apio/internal/shared"
 )
 
 // Would it be better if i do include the full path?
@@ -56,10 +59,28 @@ func ReadFile(file os.DirEntry) ([]byte, error) {
 	return buffer, nil
 }
 
-func ReloadFiles(dir []os.DirEntry) {
+func ReloadFiles() ([]models.Tokens, error) {
+	thisDir, err := GetFiles("")
+	if err != nil || len(thisDir) <= 0 {
+		if len(thisDir) <= 0 {
+			err = fmt.Errorf("This dir is empty")
+		}
+		// log.Fatal("Error loading files from given directory:", err)
+	}
+
+	// HACK: better detection/selection logic should be implemmented
+	// when i implemment basic file chosing xD. rn only the first file
+	file, err := ReadFile(thisDir[0])
+	if err != nil {
+		// log.Fatal("Error decoding file:", err)
+	}
+
+	tokens, err := lexer.FileToArrTokens(file)
 	// file, err := ReadFile(dir[0])
-	// if err != nil {
-	// 	log.Fatal("Error decoding file:", err)
-	// }
+	if err != nil {
+		return nil, err
+	}
+
+	return tokens, nil
 
 }
