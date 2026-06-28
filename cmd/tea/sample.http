@@ -6,19 +6,9 @@
 @user = twodigitss
 
 ### Get user
-GET https://{{api}}/users/1
+GET https://{{api}}/users/5
 Content-Type: application/json
 Accept: application/json
-
-### imagenes
-GET https://picsum.photos/500
-Content-Type: image/jpeg)
-
-### xml
-GET https://cdn.animenewsnetwork.com/encyclopedia/api.xml?title=4658
-
-### html
-GET https://api.dicebear.com/7.x/bottts/svg?seed=Luis
 
 ###Create a post
 ### Useless separator comment to obstaculize

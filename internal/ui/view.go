@@ -113,6 +113,7 @@ func renderHelp() string {
   c         Clear response
   h / ?     Toggle help
   q         Quit
+  y         Copy response body
 `
 	return lipgloss.NewStyle().
 		// Border(lipgloss.RoundedBorder()).

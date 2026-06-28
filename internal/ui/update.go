@@ -2,6 +2,7 @@ package ui
 
 import (
 	"fmt"
+	"github.com/atotto/clipboard"
 	"io"
 	"log"
 	"net/http"
@@ -94,6 +95,9 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			// ponytail: show the current selected request's source in the viewport
 			m.viewport.SetContent(m.currentRequest.Print())
 			m.viewport.GotoTop()
+
+		case "y":
+			_ = clipboard.WriteAll(m.responseBody)
 
 		case "down", "j":
 			if m.cursor < len(m.requests)-1 {

@@ -7,6 +7,8 @@ require (
 	charm.land/bubbletea/v2 v2.0.7
 )
 
+require github.com/atotto/clipboard v0.1.4 // indirect
+
 require (
 	charm.land/lipgloss/v2 v2.0.4
 	github.com/charmbracelet/colorprofile v0.4.3 // indirect
