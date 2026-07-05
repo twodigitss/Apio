@@ -6,6 +6,7 @@ import (
 
 	tea "charm.land/bubbletea/v2"
 	"charm.land/lipgloss/v2"
+	"charm.land/lipgloss/v2/compat"
 	"github.com/twodigitss/apio/internal/ui/data"
 )
 
@@ -50,17 +51,23 @@ func (m Model) renderSidebar(width int) string {
 		cursor := " "
 		if m.cursor == i {
 			cursor = lipgloss.NewStyle().
-				Background(lipgloss.Color("#f5f5f5")).
+				Background(compat.AdaptiveColor{
+					Light: lipgloss.Color("#000000"),
+					Dark:  lipgloss.Color("#f1f1f1"),
+				}).
 				PaddingLeft(1).
 				Blink(true).
 				Render("")
 		}
 
 		style := StyleHttpMethod(choice.Method)
+		url := strings.TrimPrefix(choice.URL, "https://")
+		url = strings.TrimPrefix(url, "http://")
+		urlTitle := data.Truncate(url, width-25) //magic number goes brrr
 
 		s.WriteString(
 			fmt.Sprintf("%s %s %s\n",
-				cursor, style.Render(choice.Method), data.Truncate(choice.URL, width-25),
+				cursor, style.Render(choice.Method), urlTitle,
 			))
 	}
 	return s.String()

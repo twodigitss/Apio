@@ -7,7 +7,7 @@ import (
 	"github.com/twodigitss/apio/internal/shared"
 )
 
-var styles map[string]string = map[string]string{
+var styles = map[string]string{
 	"GET":     "#A8E6CF",
 	"POST":    "#FFD3B6",
 	"PUT":     "#A9DEF9",
@@ -29,6 +29,8 @@ func StyleHttpMethod(line string) lipgloss.Style {
 		Bold(true).
 		Foreground(lipgloss.Color("#000")).
 		Background(lipgloss.Color(styles[prefix])).
+		Width(10).
+		Align(lipgloss.Center).
 		PaddingLeft(1).
 		PaddingRight(1)
 

@@ -7,7 +7,6 @@ import (
 	"charm.land/bubbles/v2/spinner"
 	"charm.land/bubbles/v2/viewport"
 	tea "charm.land/bubbletea/v2"
-	"charm.land/lipgloss/v2"
 	"github.com/twodigitss/apio/internal/core/parser/lexer"
 	"github.com/twodigitss/apio/internal/core/parser/models"
 )
@@ -37,7 +36,7 @@ func InitialModel(dir []os.DirEntry, file []byte) Model {
 	tokens, _ := lexer.FileToArrTokens(file)
 	s := spinner.New()
 	s.Spinner = spinner.Dot
-	s.Style = lipgloss.NewStyle().Foreground(lipgloss.Color("#cfe4ef"))
+	// s.Style = lipgloss.NewStyle().Foreground(lipgloss.Color("#cfe4ef"))
 
 	var currentRequest models.Tokens
 	if len(tokens) > 0 {
@@ -46,6 +45,8 @@ func InitialModel(dir []os.DirEntry, file []byte) Model {
 
 	// ponytail: configure viewport pager with custom keymap to avoid conflict with main menu navigation
 	vp := viewport.New()
+	vp.FillHeight = true
+	vp.SoftWrap = true
 	vp.KeyMap = viewport.DefaultKeyMap()
 	vp.KeyMap.Down.SetKeys("ctrl+j")
 	vp.KeyMap.Up.SetKeys("ctrl+k")

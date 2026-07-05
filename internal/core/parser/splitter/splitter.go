@@ -32,12 +32,11 @@ func RequestSplitter(file []byte) []string {
 	var cleanBlocks []string
 
 	for block := range strings.SplitSeq(string(file), "###") {
+		block = strings.NewReplacer("\r\n", "\n", "\r", "\n").Replace(block)
 		block = strings.TrimSpace(block)
 		if block == "" {
 			continue
 		}
-
-		block = strings.NewReplacer("\r\n", "\n", "\r", "\n").Replace(block)
 
 		// remove unwanted comments before anything
 		if blockCommentRe.MatchString(block) {
@@ -48,16 +47,18 @@ func RequestSplitter(file []byte) []string {
 		// it may be treated as "<space> GET Weather" or just "<space>"
 		// the first line will always be a comment or at least an empty space
 		// it need to be ignored
-		separatorComment, rest, found := strings.Cut(block, "\n")
+		firstLine, rest, found := strings.Cut(block, "\n")
 
 		// formatting the rest of the block by trimming, excluding comments, etc.
-		if found && !startsWithMethod(separatorComment) {
-			rest = removeComments(rest)
-			rest = resolveVariables(rest, GetVariables(file))
-			block = strings.TrimSpace(rest)
+		if found && !startsWithMethod(firstLine) {
+			block = rest
 		}
 
-		if block != "" && startsWithMethod(rest) {
+		block = removeComments(block)
+		block = resolveVariables(block, GetVariables(file))
+		block = strings.TrimSpace(block)
+
+		if block != "" && startsWithMethod(block) {
 			cleanBlocks = append(cleanBlocks, block)
 		}
 	}

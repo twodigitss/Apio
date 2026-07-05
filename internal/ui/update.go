@@ -25,10 +25,12 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	case data.RunResponseMsg:
 		m.loading = false
+
+		// FIX: do something with this
 		if msg.Err != nil {
-			// FIX: do something with this
 			log.Fatal("Error running block:", msg.Err)
 		}
+
 		contentType := msg.Response.Header.Get("Content-Type")
 
 		if strings.Contains(contentType, "image/") ||
@@ -42,7 +44,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		// m.responseBody = msg.Body
 
 		// ponytail: update viewport content with response details
-		m.viewport.SetContent(fmt.Sprintf("Status Code: %d \n\n%s\n", m.response.StatusCode, m.responseBody))
+		m.viewport.SetContent(fmt.Sprintf("Status: %s \nProtocol: %s\n\n%s\n", m.response.Status, m.response.Proto, m.responseBody))
 		m.viewport.GotoTop()
 
 	case tea.WindowSizeMsg:

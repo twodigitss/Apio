@@ -1,24 +1,21 @@
-# Common useless comment
-### Useless separator comment to obstaculize
-# Common useless comment
-### Useless separator comment to obstaculize
 @api = jsonplaceholder.typicode.com
 @user = twodigitss
 
-### Get user
+###
 GET https://{{api}}/users/5
 Content-Type: application/json
 Accept: application/json
 
+### json del angular
+GET https://jsonplaceholder.typicode.com/posts?_limit=5
+Content-Type: application/json
+Accept: application/json
+
 ###Create a post
-### Useless separator comment to obstaculize
-### Useless separator comment to obstaculize
 POST https://{{api}}/posts
-# this comment's purpose is to obstaculize the splitter
 Content-Type: application/json
 Accept: application/json
 Token: Bearer jwtstring
-# this comment's purpose is to obstaculize the splitter
 
 {
   "title" : "apio test",
