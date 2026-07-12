@@ -25,6 +25,14 @@ func (m Model) View() tea.View {
 		v.AltScreen = true
 		return v
 	}
+
+	if m.selectingFile {
+		fileSel := m.FileSelection()
+		v := tea.NewView(lipgloss.Place(m.Width, m.Height,
+			lipgloss.Center, lipgloss.Center, fileSel))
+		v.AltScreen = true
+		return v
+	}
 	right := lipgloss.NewStyle().Width(viewerWidth).
 		PaddingLeft(5).
 		PaddingRight(5).
@@ -67,7 +75,7 @@ func (m Model) renderSidebar(width int) string {
 
 		s.WriteString(
 			fmt.Sprintf("%s %s %s\n",
-				cursor, style.Render(choice.Method), urlTitle,
+				cursor, style.Bold(true).Render(choice.Method), urlTitle,
 			))
 	}
 	return s.String()
@@ -118,6 +126,7 @@ func renderHelp() string {
   enter     Execute request
   r         Reload file
   c         Clear response
+  f         Select file
   h / ?     Toggle help
   q         Quit
   y         Copy response body
@@ -127,4 +136,32 @@ func renderHelp() string {
 		// BorderForeground(lipgloss.Color("#7D56F4")).
 		Padding(1, 3).
 		Render(content)
+}
+
+// ponytail: render the file selection modal dialog
+func (m Model) FileSelection() string {
+	var s strings.Builder
+	s.WriteString("  Select HTTP/REST File\n\n")
+	for i, file := range m.files {
+		cursor := " "
+		style := lipgloss.NewStyle()
+		if m.fileCursor == i {
+			cursor = lipgloss.NewStyle().
+				Background(compat.AdaptiveColor{
+					Light: lipgloss.Color("#000000"),
+					Dark:  lipgloss.Color("#f1f1f1"),
+				}).
+				PaddingLeft(1).
+				Blink(true).
+				Render("")
+
+			style = style.Bold(true)
+		}
+		s.WriteString(fmt.Sprintf("%s %s\n", cursor, style.Render(file.Name())))
+	}
+	s.WriteString("\n  [esc/f] cancel")
+
+	return lipgloss.NewStyle().
+		Padding(1, 3).
+		Render(s.String())
 }

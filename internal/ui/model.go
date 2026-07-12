@@ -16,6 +16,9 @@ var _ tea.Model = Model{}
 
 type Model struct {
 	files          []os.DirEntry
+	multipleFiles  bool
+	selectingFile  bool
+	fileCursor     int
 	currentFile    []byte
 	requests       []models.Tokens
 	currentRequest models.Tokens
@@ -55,9 +58,17 @@ func InitialModel(dir []os.DirEntry, file []byte) Model {
 		vp.SetContent(currentRequest.Print())
 	}
 
+	multiplefiles := false
+	if len(dir) > 1 {
+		multiplefiles = true
+	}
+
 	return Model{
 		files:          dir,
 		currentFile:    file,
+		multipleFiles:  multiplefiles,
+		selectingFile:  multiplefiles,
+		fileCursor:     0,
 		requests:       tokens,
 		currentRequest: currentRequest,
 		cursor:         0,

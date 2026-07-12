@@ -4,12 +4,12 @@ import (
 	"fmt"
 	"github.com/atotto/clipboard"
 	"io"
-	"log"
 	"net/http"
 	"strings"
 
 	tea "charm.land/bubbletea/v2"
 	"github.com/twodigitss/apio/internal/core/finder"
+	"github.com/twodigitss/apio/internal/core/parser/lexer"
 	"github.com/twodigitss/apio/internal/core/parser/models"
 	"github.com/twodigitss/apio/internal/core/runner"
 	"github.com/twodigitss/apio/internal/ui/data"
@@ -26,9 +26,12 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case data.RunResponseMsg:
 		m.loading = false
 
-		// FIX: do something with this
 		if msg.Err != nil {
-			log.Fatal("Error running block:", msg.Err)
+			m.response = http.Response{}
+			m.responseBody = fmt.Sprintf("Error: %v", msg.Err)
+			m.viewport.SetContent(m.responseBody)
+			m.viewport.GotoTop()
+			return m, nil
 		}
 
 		contentType := msg.Response.Header.Get("Content-Type")
@@ -74,9 +77,58 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, nil
 		}
 
+		if m.selectingFile {
+			switch msg.String() {
+			case "ctrl+c", "q":
+				return m, tea.Quit
+			case "esc", "f":
+				m.selectingFile = false
+				return m, nil
+			case "up", "k":
+				if m.fileCursor > 0 {
+					m.fileCursor--
+				}
+				return m, nil
+			case "down", "j":
+				if m.fileCursor < len(m.files)-1 {
+					m.fileCursor++
+				}
+				return m, nil
+			case "enter":
+				selectedFileEntry := m.files[m.fileCursor]
+				fileBytes, err := finder.ReadFile(selectedFileEntry)
+				if err == nil {
+					tokens, err := lexer.FileToArrTokens(fileBytes)
+					if err == nil {
+						m.currentFile = fileBytes
+						m.requests = tokens
+						m.cursor = 0
+						if len(tokens) > 0 {
+							m.currentRequest = tokens[0]
+							m.viewport.SetContent(m.currentRequest.Print())
+						} else {
+							m.currentRequest = models.Tokens{}
+							m.viewport.SetContent("")
+						}
+						m.viewport.GotoTop()
+					}
+				}
+				m.currentFile = fileBytes
+				m.selectingFile = false
+				return m, nil
+			}
+			return m, nil
+		}
+
 		switch msg.String() {
 		case "?", "h":
 			m.showHelp = !m.showHelp
+			return m, nil
+
+		case "f":
+			if m.multipleFiles {
+				m.selectingFile = true
+			}
 			return m, nil
 
 		case "ctrl+c", "q":
@@ -136,7 +188,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 		case "r":
 			var reloadedRequests []models.Tokens
-			newContent, err := finder.ReloadFiles()
+			newContent, err := finder.ReloadFiles(m.currentFile)
 			reloadedRequests = newContent
 			if err != nil {
 				reloadedRequests = m.requests
