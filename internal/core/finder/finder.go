@@ -54,7 +54,7 @@ func GetFiles(path string) ([]os.DirEntry, error) {
 func ReadFile(file os.DirEntry) ([]byte, error) {
 	buffer, err := os.ReadFile(configs.WorkingDir + "/" + file.Name())
 	if err != nil {
-		return nil, nil
+		return nil, err
 	}
 	return buffer, nil
 }

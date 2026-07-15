@@ -2,10 +2,11 @@ package ui
 
 import (
 	"fmt"
-	"github.com/atotto/clipboard"
 	"io"
 	"net/http"
 	"strings"
+
+	"github.com/atotto/clipboard"
 
 	tea "charm.land/bubbletea/v2"
 	"github.com/twodigitss/apio/internal/core/finder"
@@ -187,12 +188,19 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 
 		case "r":
-			var reloadedRequests []models.Tokens
-			newContent, err := finder.ReloadFiles(m.currentFile)
-			reloadedRequests = newContent
+			selectedFileEntry := m.files[m.fileCursor]
+			fileBytes, err := finder.ReadFile(selectedFileEntry)
 			if err != nil {
-				reloadedRequests = m.requests
+				return m, nil
 			}
+
+			reloadedRequests, err := finder.ReloadFiles(fileBytes)
+			if err != nil {
+				return m, nil
+			}
+
+			m.currentFile = fileBytes
+			m.requests = reloadedRequests
 
 			if m.cursor >= len(m.requests) {
 				m.cursor = len(m.requests) - 1
@@ -201,7 +209,6 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.cursor = 0
 			}
 
-			m.requests = reloadedRequests
 			m.currentRequest = m.requests[m.cursor]
 			m.viewport.SetContent(m.currentRequest.Print())
 			m.viewport.GotoTop()

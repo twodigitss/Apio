@@ -1,7 +1,6 @@
 package lexer
 
 import (
-	"fmt"
 	"log"
 
 	"github.com/twodigitss/apio/internal/core/parser/models"
@@ -11,7 +10,7 @@ import (
 func FileToArrTokens(file []byte) ([]models.Tokens, error) {
 
 	if len(file) == 0 {
-		return nil, fmt.Errorf("File size is 0Kb, either corrupted or error getting file contents")
+		return []models.Tokens{}, nil
 	}
 
 	parts := splitter.RequestSplitter(file)

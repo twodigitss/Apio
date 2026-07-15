@@ -2,7 +2,7 @@
 @user = twodigitss
 
 ###
-GET https://{{api}}/users/5 HTTP/1.1
+GET https://{{api}}/users/10
 Content-Type: application/json
 Accept: application/json
 Cache-Control: max-age=604800
