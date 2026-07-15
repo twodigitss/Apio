@@ -2,9 +2,12 @@
 @user = twodigitss
 
 ###
-GET https://{{api}}/users/5
+GET https://{{api}}/users/5 HTTP/1.1
 Content-Type: application/json
 Accept: application/json
+Cache-Control: max-age=604800
+Age: 100
+Date: Wed, 27 Apr 2023 07:28:00 GMT
 
 ### json del angular
 GET https://jsonplaceholder.typicode.com/posts?_limit=5
