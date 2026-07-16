@@ -44,10 +44,8 @@ func New(dir []os.DirEntry, file []byte) Model {
 		initialContent = currentRequest.Print()
 	}
 
-	multipleFiles := len(dir) > 1
-
 	return Model{
-		selectingFile:  multipleFiles,
+		selectingFile:  len(dir) > 1,
 		currentRequest: currentRequest,
 		response:       http.Response{},
 		sidebar:        sidebar.New(tokens),
