@@ -9,6 +9,7 @@ import (
 	tea "charm.land/bubbletea/v2"
 	"github.com/twodigitss/apio/internal/core/parser/lexer"
 	"github.com/twodigitss/apio/internal/core/parser/models"
+	"github.com/twodigitss/apio/internal/ui/components/sidebar"
 )
 
 // Ensure Model implements tea.Model
@@ -26,13 +27,14 @@ type Model struct {
 	response     http.Response
 	responseBody string
 
-	cursor   int
 	loading  bool
 	Width    int
 	Height   int
 	spinner  spinner.Model
 	viewport viewport.Model
 	showHelp bool
+
+	sidebar sidebar.Model
 }
 
 func InitialModel(dir []os.DirEntry, file []byte) Model {
@@ -71,16 +73,17 @@ func InitialModel(dir []os.DirEntry, file []byte) Model {
 		fileCursor:     0,
 		requests:       tokens,
 		currentRequest: currentRequest,
-		cursor:         0,
 		response:       http.Response{},
 		loading:        false,
 		spinner:        s,
 		viewport:       vp,
+		sidebar:        sidebar.New(tokens),
 	}
 }
 
 func (m Model) Init() tea.Cmd {
-	// Just return `nil`, which means "no I/O right now, please."
-	// return nil
-	return m.spinner.Tick
+	return tea.Batch(
+		m.sidebar.Init(),
+		m.spinner.Tick,
+	)
 }

@@ -22,6 +22,14 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		cmds []tea.Cmd
 	)
 
+	// ponytail: update sidebar model first so it can process and capture cursor navigation keypresses
+	if !m.showHelp && !m.selectingFile {
+		m.sidebar, cmd = m.sidebar.Update(msg)
+		if cmd != nil {
+			cmds = append(cmds, cmd)
+		}
+	}
+
 	switch msg := msg.(type) {
 
 	case data.RunResponseMsg:
@@ -103,7 +111,10 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					if err == nil {
 						m.currentFile = fileBytes
 						m.requests = tokens
-						m.cursor = 0
+
+						m.sidebar.Requests = tokens
+						m.sidebar.Cursor = 0
+
 						if len(tokens) > 0 {
 							m.currentRequest = tokens[0]
 							m.viewport.SetContent(m.currentRequest.Print())
@@ -135,41 +146,23 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "ctrl+c", "q":
 			return m, tea.Quit
 
-		case "up", "k":
-			if m.cursor > 0 {
-				m.cursor--
+		case "up", "k", "down", "j":
+			if len(m.requests) > 0 {
+				m.response = http.Response{}
+				m.responseBody = ""
+				m.currentRequest = m.requests[m.sidebar.Cursor]
+
+				// ponytail: show the current selected request's source in the viewport
+				m.viewport.SetContent(m.currentRequest.Print())
+				m.viewport.GotoTop()
 			}
-
-			//in view.go i use statuscode=0 to unrender the response
-			//but since i set the response to the interface, statuscode
-			//is already zero. dont forget
-			m.response = http.Response{}
-			m.responseBody = ""
-			m.currentRequest = m.requests[m.cursor]
-
-			// ponytail: show the current selected request's source in the viewport
-			m.viewport.SetContent(m.currentRequest.Print())
-			m.viewport.GotoTop()
 
 		case "y":
 			_ = clipboard.WriteAll(m.responseBody)
 
-		case "down", "j":
-			if m.cursor < len(m.requests)-1 {
-				m.cursor++
-			}
-
-			m.response = http.Response{}
-			m.responseBody = ""
-			m.currentRequest = m.requests[m.cursor]
-
-			// ponytail: show the current selected request's source in the viewport
-			m.viewport.SetContent(m.currentRequest.Print())
-			m.viewport.GotoTop()
-
 		case "enter":
 			m.loading = true
-			req := m.requests[m.cursor]
+			req := m.requests[m.sidebar.Cursor]
 
 			return m, func() tea.Msg {
 				res, err := runner.Run(req)
@@ -201,15 +194,16 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 			m.currentFile = fileBytes
 			m.requests = reloadedRequests
+			m.sidebar.Requests = reloadedRequests
 
-			if m.cursor >= len(m.requests) {
-				m.cursor = len(m.requests) - 1
+			if m.sidebar.Cursor >= len(m.requests) {
+				m.sidebar.Cursor = len(m.requests) - 1
 			}
-			if m.cursor < 0 {
-				m.cursor = 0
+			if m.sidebar.Cursor < 0 {
+				m.sidebar.Cursor = 0
 			}
 
-			m.currentRequest = m.requests[m.cursor]
+			m.currentRequest = m.requests[m.sidebar.Cursor]
 			m.viewport.SetContent(m.currentRequest.Print())
 			m.viewport.GotoTop()
 
@@ -239,5 +233,6 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	if len(cmds) == 0 {
 		return m, nil
 	}
+
 	return m, tea.Batch(cmds...)
 }

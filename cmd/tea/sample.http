@@ -9,11 +9,6 @@ Cache-Control: max-age=604800
 Age: 100
 Date: Wed, 27 Apr 2023 07:28:00 GMT
 
-### json del angular
-GET https://jsonplaceholder.typicode.com/posts?_limit=5
-Content-Type: application/json
-Accept: application/json
-
 ###Create a post
 POST https://{{api}}/posts
 Content-Type: application/json

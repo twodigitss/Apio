@@ -7,7 +7,7 @@ import (
 	tea "charm.land/bubbletea/v2"
 	"charm.land/lipgloss/v2"
 	"charm.land/lipgloss/v2/compat"
-	"github.com/twodigitss/apio/internal/ui/data"
+	// "github.com/twodigitss/apio/internal/ui/data"
 )
 
 func (m Model) View() tea.View {
@@ -15,7 +15,6 @@ func (m Model) View() tea.View {
 	sidebarWidth := m.Width / 3
 	viewerWidth := m.Width - sidebarWidth
 
-	sidebar := m.renderSidebar(sidebarWidth)
 	viewer := m.renderViewer()
 
 	if m.showHelp {
@@ -45,40 +44,12 @@ func (m Model) View() tea.View {
 		PaddingLeft(5).
 		PaddingRight(5).
 		PaddingTop(2).
-		Render(sidebar)
+		Render(m.sidebar.View(sidebarWidth))
 
 	v := tea.NewView(lipgloss.JoinHorizontal(lipgloss.Top, left, right))
 	v.AltScreen = true
 	v.MouseMode = tea.MouseModeCellMotion
 	return v
-}
-
-func (m Model) renderSidebar(width int) string {
-	var s strings.Builder
-	for i, choice := range m.requests {
-		cursor := " "
-		if m.cursor == i {
-			cursor = lipgloss.NewStyle().
-				Background(compat.AdaptiveColor{
-					Light: lipgloss.Color("#000000"),
-					Dark:  lipgloss.Color("#f1f1f1"),
-				}).
-				PaddingLeft(1).
-				Blink(true).
-				Render("")
-		}
-
-		style := StyleHttpMethod(choice.Method)
-		url := strings.TrimPrefix(choice.URL, "https://")
-		url = strings.TrimPrefix(url, "http://")
-		urlTitle := data.Truncate(url, width-25) //magic number goes brrr
-
-		s.WriteString(
-			fmt.Sprintf("%s %s %s\n",
-				cursor, style.Bold(true).Render(choice.Method), urlTitle,
-			))
-	}
-	return s.String()
 }
 
 func (m Model) renderViewer() string {
