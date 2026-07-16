@@ -103,9 +103,6 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				if err == nil {
 					tokens, err := lexer.FileToArrTokens(fileBytes)
 					if err == nil {
-						m.currentFile = fileBytes
-						m.requests = tokens
-
 						m.sidebar.Requests = tokens
 						m.sidebar.Cursor = 0
 						if len(tokens) > 0 {
@@ -118,7 +115,6 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 						m.viewer.Viewport.GotoTop()
 					}
 				}
-				m.currentFile = fileBytes
 				m.selectingFile = false
 				return m, nil
 			}
@@ -131,7 +127,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, nil
 
 		case "f":
-			if m.multipleFiles {
+			if len(m.fileSelection.Files) > 1 {
 				m.selectingFile = true
 			}
 			return m, nil
@@ -140,10 +136,10 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, tea.Quit
 
 		case "up", "k", "down", "j":
-			if len(m.requests) > 0 {
+			if len(m.sidebar.Requests) > 0 {
 				m.response = http.Response{}
 				m.responseBody = ""
-				m.currentRequest = m.requests[m.sidebar.Cursor]
+				m.currentRequest = m.sidebar.Requests[m.sidebar.Cursor]
 
 				m.viewer.Viewport.SetContent(m.currentRequest.Print())
 				m.viewer.Viewport.GotoTop()
@@ -154,7 +150,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 		case "enter":
 			m.viewer.Loading = true
-			req := m.requests[m.sidebar.Cursor]
+			req := m.sidebar.Requests[m.sidebar.Cursor]
 
 			return m, func() tea.Msg {
 				res, err := runner.Run(req)
@@ -179,23 +175,21 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				return m, nil
 			}
 
-			reloadedRequests, err := finder.ReloadFiles(fileBytes)
+			reloadedRequests, err := lexer.FileToArrTokens(fileBytes)
 			if err != nil {
 				return m, nil
 			}
 
-			m.currentFile = fileBytes
-			m.requests = reloadedRequests
 			m.sidebar.Requests = reloadedRequests
 
-			if m.sidebar.Cursor >= len(m.requests) {
-				m.sidebar.Cursor = len(m.requests) - 1
+			if m.sidebar.Cursor >= len(m.sidebar.Requests) {
+				m.sidebar.Cursor = len(m.sidebar.Requests) - 1
 			}
 			if m.sidebar.Cursor < 0 {
 				m.sidebar.Cursor = 0
 			}
 
-			m.currentRequest = m.requests[m.sidebar.Cursor]
+			m.currentRequest = m.sidebar.Requests[m.sidebar.Cursor]
 			m.viewer.Viewport.SetContent(m.currentRequest.Print())
 			m.viewer.Viewport.GotoTop()
 
