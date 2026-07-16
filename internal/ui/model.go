@@ -4,12 +4,12 @@ import (
 	"net/http"
 	"os"
 
-	"charm.land/bubbles/v2/spinner"
-	"charm.land/bubbles/v2/viewport"
 	tea "charm.land/bubbletea/v2"
 	"github.com/twodigitss/apio/internal/core/parser/lexer"
 	"github.com/twodigitss/apio/internal/core/parser/models"
+	"github.com/twodigitss/apio/internal/ui/components/fileselection"
 	"github.com/twodigitss/apio/internal/ui/components/sidebar"
+	"github.com/twodigitss/apio/internal/ui/components/viewer"
 )
 
 // Ensure Model implements tea.Model
@@ -27,37 +27,26 @@ type Model struct {
 	response     http.Response
 	responseBody string
 
-	loading  bool
 	Width    int
 	Height   int
-	spinner  spinner.Model
-	viewport viewport.Model
 	showHelp bool
 
-	sidebar sidebar.Model
+	sidebar       sidebar.Model
+	fileSelection fileselection.Model
+	viewer        viewer.Model
 }
 
-func InitialModel(dir []os.DirEntry, file []byte) Model {
+func New(dir []os.DirEntry, file []byte) Model {
 	tokens, _ := lexer.FileToArrTokens(file)
-	s := spinner.New()
-	s.Spinner = spinner.Dot
-	// s.Style = lipgloss.NewStyle().Foreground(lipgloss.Color("#cfe4ef"))
 
 	var currentRequest models.Tokens
 	if len(tokens) > 0 {
 		currentRequest = tokens[0]
 	}
 
-	// ponytail: configure viewport pager with custom keymap to avoid conflict with main menu navigation
-	vp := viewport.New()
-	vp.FillHeight = true
-	vp.SoftWrap = true
-	vp.KeyMap = viewport.DefaultKeyMap()
-	vp.KeyMap.Down.SetKeys("ctrl+j")
-	vp.KeyMap.Up.SetKeys("ctrl+k")
-	vp.MouseWheelEnabled = true
+	initialContent := ""
 	if len(tokens) > 0 {
-		vp.SetContent(currentRequest.Print())
+		initialContent = currentRequest.Print()
 	}
 
 	multiplefiles := false
@@ -74,16 +63,16 @@ func InitialModel(dir []os.DirEntry, file []byte) Model {
 		requests:       tokens,
 		currentRequest: currentRequest,
 		response:       http.Response{},
-		loading:        false,
-		spinner:        s,
-		viewport:       vp,
 		sidebar:        sidebar.New(tokens),
+		fileSelection:  fileselection.New(dir),
+		viewer:         viewer.New(initialContent),
 	}
 }
 
 func (m Model) Init() tea.Cmd {
 	return tea.Batch(
 		m.sidebar.Init(),
-		m.spinner.Tick,
+		m.fileSelection.Init(),
+		m.viewer.Init(),
 	)
 }

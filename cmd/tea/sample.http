@@ -38,7 +38,7 @@ Accept: application/json
 OPTIONS https://{{api}}/users/1
 Accept: application/json
 
-### Update a post (ponytail: minimum PUT request)
+### Update a post 
 PUT https://{{api}}/posts/1
 Content-Type: application/json
 Accept: application/json

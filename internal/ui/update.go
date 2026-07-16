@@ -22,9 +22,15 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		cmds []tea.Cmd
 	)
 
-	// ponytail: update sidebar model first so it can process and capture cursor navigation keypresses
 	if !m.showHelp && !m.selectingFile {
 		m.sidebar, cmd = m.sidebar.Update(msg)
+		if cmd != nil {
+			cmds = append(cmds, cmd)
+		}
+	}
+
+	if m.selectingFile {
+		m.fileSelection, cmd = m.fileSelection.Update(msg)
 		if cmd != nil {
 			cmds = append(cmds, cmd)
 		}
@@ -33,13 +39,13 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 
 	case data.RunResponseMsg:
-		m.loading = false
+		m.viewer.Loading = false
 
 		if msg.Err != nil {
 			m.response = http.Response{}
 			m.responseBody = fmt.Sprintf("Error: %v", msg.Err)
-			m.viewport.SetContent(m.responseBody)
-			m.viewport.GotoTop()
+			m.viewer.Viewport.SetContent(m.responseBody)
+			m.viewer.Viewport.GotoTop()
 			return m, nil
 		}
 
@@ -55,15 +61,13 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.response = msg.Response
 		// m.responseBody = msg.Body
 
-		// ponytail: update viewport content with response details
-		m.viewport.SetContent(fmt.Sprintf("Status: %s \nProtocol: %s\n\n%s\n", m.response.Status, m.response.Proto, m.responseBody))
-		m.viewport.GotoTop()
+		m.viewer.Viewport.SetContent(fmt.Sprintf("Status: %s \nProtocol: %s\n\n%s\n", m.response.Status, m.response.Proto, m.responseBody))
+		m.viewer.Viewport.GotoTop()
 
 	case tea.WindowSizeMsg:
 		m.Width = msg.Width
 		m.Height = msg.Height
 
-		// ponytail: adjust viewport size to fit the remaining space on the right side
 		sidebarWidth := msg.Width / 3
 		viewerWidth := msg.Width - sidebarWidth
 		vpWidth := viewerWidth - 10
@@ -74,8 +78,8 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		if vpHeight < 0 {
 			vpHeight = 0
 		}
-		m.viewport.SetWidth(vpWidth)
-		m.viewport.SetHeight(vpHeight)
+		m.viewer.Viewport.SetWidth(vpWidth)
+		m.viewer.Viewport.SetHeight(vpHeight)
 
 	case tea.KeyPressMsg:
 
@@ -93,18 +97,8 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			case "esc", "f":
 				m.selectingFile = false
 				return m, nil
-			case "up", "k":
-				if m.fileCursor > 0 {
-					m.fileCursor--
-				}
-				return m, nil
-			case "down", "j":
-				if m.fileCursor < len(m.files)-1 {
-					m.fileCursor++
-				}
-				return m, nil
 			case "enter":
-				selectedFileEntry := m.files[m.fileCursor]
+				selectedFileEntry := m.fileSelection.Files[m.fileSelection.FileCursor]
 				fileBytes, err := finder.ReadFile(selectedFileEntry)
 				if err == nil {
 					tokens, err := lexer.FileToArrTokens(fileBytes)
@@ -114,15 +108,14 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 						m.sidebar.Requests = tokens
 						m.sidebar.Cursor = 0
-
 						if len(tokens) > 0 {
 							m.currentRequest = tokens[0]
-							m.viewport.SetContent(m.currentRequest.Print())
+							m.viewer.Viewport.SetContent(m.currentRequest.Print())
 						} else {
 							m.currentRequest = models.Tokens{}
-							m.viewport.SetContent("")
+							m.viewer.Viewport.SetContent("")
 						}
-						m.viewport.GotoTop()
+						m.viewer.Viewport.GotoTop()
 					}
 				}
 				m.currentFile = fileBytes
@@ -152,16 +145,15 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.responseBody = ""
 				m.currentRequest = m.requests[m.sidebar.Cursor]
 
-				// ponytail: show the current selected request's source in the viewport
-				m.viewport.SetContent(m.currentRequest.Print())
-				m.viewport.GotoTop()
+				m.viewer.Viewport.SetContent(m.currentRequest.Print())
+				m.viewer.Viewport.GotoTop()
 			}
 
 		case "y":
 			_ = clipboard.WriteAll(m.responseBody)
 
 		case "enter":
-			m.loading = true
+			m.viewer.Loading = true
 			req := m.requests[m.sidebar.Cursor]
 
 			return m, func() tea.Msg {
@@ -181,7 +173,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 
 		case "r":
-			selectedFileEntry := m.files[m.fileCursor]
+			selectedFileEntry := m.fileSelection.Files[m.fileSelection.FileCursor]
 			fileBytes, err := finder.ReadFile(selectedFileEntry)
 			if err != nil {
 				return m, nil
@@ -204,28 +196,21 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 
 			m.currentRequest = m.requests[m.sidebar.Cursor]
-			m.viewport.SetContent(m.currentRequest.Print())
-			m.viewport.GotoTop()
+			m.viewer.Viewport.SetContent(m.currentRequest.Print())
+			m.viewer.Viewport.GotoTop()
 
 		case "c":
 			m.response.Body = nil
 			m.response.StatusCode = 0
 			m.responseBody = ""
 
-			// ponytail: reset viewport back to showing the current request
-			m.viewport.SetContent(m.currentRequest.Print())
-			m.viewport.GotoTop()
+			m.viewer.Viewport.SetContent(m.currentRequest.Print())
+			m.viewer.Viewport.GotoTop()
 		}
 
 	}
 
-	// ponytail: update spinner and viewport models to handle ticks, key bindings, and mouse events
-	m.spinner, cmd = m.spinner.Update(msg)
-	if cmd != nil {
-		cmds = append(cmds, cmd)
-	}
-
-	m.viewport, cmd = m.viewport.Update(msg)
+	m.viewer, cmd = m.viewer.Update(msg)
 	if cmd != nil {
 		cmds = append(cmds, cmd)
 	}

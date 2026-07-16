@@ -8,7 +8,7 @@ import (
 	"charm.land/lipgloss/v2/compat"
 )
 
-func (m Model) FileSelection() string {
+func (m Model) View() string {
 	var s strings.Builder
 	s.WriteString("  Select HTTP/REST File\n\n")
 	for i, file := range m.Files {
