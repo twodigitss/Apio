@@ -22,16 +22,30 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		cmds []tea.Cmd
 	)
 
+	if !m.showHelp && !m.selectingFile {
+		m.sidebar, cmd = m.sidebar.Update(msg)
+		if cmd != nil {
+			cmds = append(cmds, cmd)
+		}
+	}
+
+	if m.selectingFile {
+		m.fileSelection, cmd = m.fileSelection.Update(msg)
+		if cmd != nil {
+			cmds = append(cmds, cmd)
+		}
+	}
+
 	switch msg := msg.(type) {
 
 	case data.RunResponseMsg:
-		m.loading = false
+		m.viewer.Loading = false
 
 		if msg.Err != nil {
 			m.response = http.Response{}
 			m.responseBody = fmt.Sprintf("Error: %v", msg.Err)
-			m.viewport.SetContent(m.responseBody)
-			m.viewport.GotoTop()
+			m.viewer.Viewport.SetContent(m.responseBody)
+			m.viewer.Viewport.GotoTop()
 			return m, nil
 		}
 
@@ -47,15 +61,13 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.response = msg.Response
 		// m.responseBody = msg.Body
 
-		// ponytail: update viewport content with response details
-		m.viewport.SetContent(fmt.Sprintf("Status: %s \nProtocol: %s\n\n%s\n", m.response.Status, m.response.Proto, m.responseBody))
-		m.viewport.GotoTop()
+		m.viewer.Viewport.SetContent(fmt.Sprintf("Status: %s \nProtocol: %s\n\n%s\n", m.response.Status, m.response.Proto, m.responseBody))
+		m.viewer.Viewport.GotoTop()
 
 	case tea.WindowSizeMsg:
 		m.Width = msg.Width
 		m.Height = msg.Height
 
-		// ponytail: adjust viewport size to fit the remaining space on the right side
 		sidebarWidth := msg.Width / 3
 		viewerWidth := msg.Width - sidebarWidth
 		vpWidth := viewerWidth - 10
@@ -66,8 +78,8 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		if vpHeight < 0 {
 			vpHeight = 0
 		}
-		m.viewport.SetWidth(vpWidth)
-		m.viewport.SetHeight(vpHeight)
+		m.viewer.Viewport.SetWidth(vpWidth)
+		m.viewer.Viewport.SetHeight(vpHeight)
 
 	case tea.KeyPressMsg:
 
@@ -85,36 +97,24 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			case "esc", "f":
 				m.selectingFile = false
 				return m, nil
-			case "up", "k":
-				if m.fileCursor > 0 {
-					m.fileCursor--
-				}
-				return m, nil
-			case "down", "j":
-				if m.fileCursor < len(m.files)-1 {
-					m.fileCursor++
-				}
-				return m, nil
 			case "enter":
-				selectedFileEntry := m.files[m.fileCursor]
+				selectedFileEntry := m.fileSelection.Files[m.fileSelection.FileCursor]
 				fileBytes, err := finder.ReadFile(selectedFileEntry)
 				if err == nil {
 					tokens, err := lexer.FileToArrTokens(fileBytes)
 					if err == nil {
-						m.currentFile = fileBytes
-						m.requests = tokens
-						m.cursor = 0
+						m.sidebar.Requests = tokens
+						m.sidebar.Cursor = 0
 						if len(tokens) > 0 {
 							m.currentRequest = tokens[0]
-							m.viewport.SetContent(m.currentRequest.Print())
+							m.viewer.Viewport.SetContent(m.currentRequest.Print())
 						} else {
 							m.currentRequest = models.Tokens{}
-							m.viewport.SetContent("")
+							m.viewer.Viewport.SetContent("")
 						}
-						m.viewport.GotoTop()
+						m.viewer.Viewport.GotoTop()
 					}
 				}
-				m.currentFile = fileBytes
 				m.selectingFile = false
 				return m, nil
 			}
@@ -127,7 +127,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, nil
 
 		case "f":
-			if m.multipleFiles {
+			if len(m.fileSelection.Files) > 1 {
 				m.selectingFile = true
 			}
 			return m, nil
@@ -135,41 +135,22 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "ctrl+c", "q":
 			return m, tea.Quit
 
-		case "up", "k":
-			if m.cursor > 0 {
-				m.cursor--
+		case "up", "k", "down", "j":
+			if len(m.sidebar.Requests) > 0 {
+				m.response = http.Response{}
+				m.responseBody = ""
+				m.currentRequest = m.sidebar.Requests[m.sidebar.Cursor]
+
+				m.viewer.Viewport.SetContent(m.currentRequest.Print())
+				m.viewer.Viewport.GotoTop()
 			}
-
-			//in view.go i use statuscode=0 to unrender the response
-			//but since i set the response to the interface, statuscode
-			//is already zero. dont forget
-			m.response = http.Response{}
-			m.responseBody = ""
-			m.currentRequest = m.requests[m.cursor]
-
-			// ponytail: show the current selected request's source in the viewport
-			m.viewport.SetContent(m.currentRequest.Print())
-			m.viewport.GotoTop()
 
 		case "y":
 			_ = clipboard.WriteAll(m.responseBody)
 
-		case "down", "j":
-			if m.cursor < len(m.requests)-1 {
-				m.cursor++
-			}
-
-			m.response = http.Response{}
-			m.responseBody = ""
-			m.currentRequest = m.requests[m.cursor]
-
-			// ponytail: show the current selected request's source in the viewport
-			m.viewport.SetContent(m.currentRequest.Print())
-			m.viewport.GotoTop()
-
 		case "enter":
-			m.loading = true
-			req := m.requests[m.cursor]
+			m.viewer.Loading = true
+			req := m.sidebar.Requests[m.sidebar.Cursor]
 
 			return m, func() tea.Msg {
 				res, err := runner.Run(req)
@@ -188,50 +169,42 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 
 		case "r":
-			selectedFileEntry := m.files[m.fileCursor]
+			selectedFileEntry := m.fileSelection.Files[m.fileSelection.FileCursor]
 			fileBytes, err := finder.ReadFile(selectedFileEntry)
 			if err != nil {
 				return m, nil
 			}
 
-			reloadedRequests, err := finder.ReloadFiles(fileBytes)
+			reloadedRequests, err := lexer.FileToArrTokens(fileBytes)
 			if err != nil {
 				return m, nil
 			}
 
-			m.currentFile = fileBytes
-			m.requests = reloadedRequests
+			m.sidebar.Requests = reloadedRequests
 
-			if m.cursor >= len(m.requests) {
-				m.cursor = len(m.requests) - 1
+			if m.sidebar.Cursor >= len(m.sidebar.Requests) {
+				m.sidebar.Cursor = len(m.sidebar.Requests) - 1
 			}
-			if m.cursor < 0 {
-				m.cursor = 0
+			if m.sidebar.Cursor < 0 {
+				m.sidebar.Cursor = 0
 			}
 
-			m.currentRequest = m.requests[m.cursor]
-			m.viewport.SetContent(m.currentRequest.Print())
-			m.viewport.GotoTop()
+			m.currentRequest = m.sidebar.Requests[m.sidebar.Cursor]
+			m.viewer.Viewport.SetContent(m.currentRequest.Print())
+			m.viewer.Viewport.GotoTop()
 
 		case "c":
 			m.response.Body = nil
 			m.response.StatusCode = 0
 			m.responseBody = ""
 
-			// ponytail: reset viewport back to showing the current request
-			m.viewport.SetContent(m.currentRequest.Print())
-			m.viewport.GotoTop()
+			m.viewer.Viewport.SetContent(m.currentRequest.Print())
+			m.viewer.Viewport.GotoTop()
 		}
 
 	}
 
-	// ponytail: update spinner and viewport models to handle ticks, key bindings, and mouse events
-	m.spinner, cmd = m.spinner.Update(msg)
-	if cmd != nil {
-		cmds = append(cmds, cmd)
-	}
-
-	m.viewport, cmd = m.viewport.Update(msg)
+	m.viewer, cmd = m.viewer.Update(msg)
 	if cmd != nil {
 		cmds = append(cmds, cmd)
 	}
@@ -239,5 +212,6 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	if len(cmds) == 0 {
 		return m, nil
 	}
+
 	return m, tea.Batch(cmds...)
 }

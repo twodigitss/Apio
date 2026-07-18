@@ -27,7 +27,7 @@ func main() {
 		log.Fatal("Error decoding file:", err)
 	}
 
-	p := tea.NewProgram(ui.InitialModel(thisDir, file))
+	p := tea.NewProgram(ui.New(thisDir, file))
 	if _, err := p.Run(); err != nil {
 		fmt.Printf("Alas, there's been an error: %v", err)
 		os.Exit(1)

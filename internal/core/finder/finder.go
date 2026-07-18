@@ -6,8 +6,6 @@ import (
 	"path/filepath"
 
 	"github.com/twodigitss/apio/configs"
-	"github.com/twodigitss/apio/internal/core/parser/lexer"
-	"github.com/twodigitss/apio/internal/core/parser/models"
 	"github.com/twodigitss/apio/internal/shared"
 )
 
@@ -47,7 +45,6 @@ func GetFiles(path string) ([]os.DirEntry, error) {
 		}
 	}
 
-	// fmt.Println("REST/HTTP FILES FOUND IN THIS DIR: ", restfiles)
 	return restfiles, nil
 }
 
@@ -57,12 +54,4 @@ func ReadFile(file os.DirEntry) ([]byte, error) {
 		return nil, err
 	}
 	return buffer, nil
-}
-
-func ReloadFiles(currentFile []byte) ([]models.Tokens, error) {
-	tokens, err := lexer.FileToArrTokens(currentFile)
-	if err != nil {
-		return nil, err
-	}
-	return tokens, nil
 }

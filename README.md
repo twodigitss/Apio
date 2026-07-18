@@ -69,9 +69,15 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ---
 
+## Instalation
+Run `./build.sh` to build the binary and `./build.sh install` to install it locally at `~/.local/bin/apio`
+(Don't forget to make the file executable if it is not executable by default)
+
+---
+
 ### To-do
 
-- [ ] Do a better folder structure
+- [x] Do a better folder structure
 - [ ] fix composed variables 
         @hostname=localhost
         @port=44320
