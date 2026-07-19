@@ -1,10 +1,20 @@
 # 🥬 Apio
 
-> A minimalist HTTP file reader and executor for your terminal.
+> Minimalist HTTP file reader and runner for your terminal.
 
-**apio** is a simple open-source terminal tool designed for developers who prefer defining HTTP requests in plain text files (such as `.http` or `.rest` files) rather than using heavy GUI clients. 
+**Apio** is a TUI tool designed for developers who prefer defining HTTP requests in plain text files (such as `.http` or `.rest` files) rather than using heavy GUI clients.
 
-It reads your HTTP files, parses and extracts the requests, and lets you execute them interactively inside a clean Terminal User Interface (TUI). *apio is a reader/executor; it does not modify your files.*
+There is similar tools, such as Posting and Noodle, but i tried to focus on just reading and executing because i dont actually want to build a TUI Postman.
+Apio reads your HTTP files, parses and extracts the requests, and lets you execute them interactively inside a Terminal. *apio is a reader/executor; it does not modify your files.*
+
+---
+
+## Instalation
+Run `./build.sh` to build the binary and `./build.sh install` to install it locally at `~/.local/bin/apio`
+
+If you choose to install it locally, run `apio` to start<br>
+Note: make sure there is at least one http file on the working directory you are executing the command.
+
 
 ---
 
@@ -31,7 +41,7 @@ Navigating and running requests in `apio` is straightforward:
 `apio` supports standard plain-text HTTP client syntax. For example:
 
 ```http
-# Global variables
+### Global variables
 @api = jsonplaceholder.typicode.com
 @contentType = application/json
 
@@ -47,19 +57,10 @@ Token: Bearer your-jwt-token-here
 {
   "title": "Testing apio",
   "body": "Sent from the terminal",
-  "userId": 1
+  "userId": 1,
+  "api": {{api}}
 }
 ```
-
----
-
-## Project Status & Limitations
-
-This is a lightweight open-source tool in its early stages:
-- **Simple Lexer**: The parser is optimized for standard, everyday syntax (GET, POST, PUT, DELETE, headers, simple variables, comments, and JSON payloads).
-- **Edge Cases**: More complex features or syntax from commercial/advanced REST clients may not be fully supported yet.
-
-Contributions, issues, and pull requests are highly welcome to help improve the parser and parser coverage!
 
 ---
 
@@ -69,21 +70,6 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ---
 
-## Instalation
-Run `./build.sh` to build the binary and `./build.sh install` to install it locally at `~/.local/bin/apio`
-(Don't forget to make the file executable if it is not executable by default)
+Contributions, issues, and pull requests are highly welcome to help improve the parser and parser coverage!
 
----
-
-### To-do
-
-- [x] Do a better folder structure
-- [ ] fix composed variables 
-        @hostname=localhost
-        @port=44320
-        @host={{hostname}}:{{port}}
-        GET https://{{host}}/api/search/tool
-- [ ] The rest of syntax for the http files
-    - [ ] shared variables, composed variables, http protocol in the same line as the request, etc.
-        https://learn.microsoft.com/en-us/aspnet/core/test/http-files?view=aspnetcore-10.0
 
