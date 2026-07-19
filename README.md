@@ -7,6 +7,9 @@
 There is similar tools, such as Posting and Noodle, but i tried to focus on just reading and executing because i dont actually want to build a TUI Postman.
 Apio reads your HTTP files, parses and extracts the requests, and lets you execute them interactively inside a Terminal. *apio is a reader/executor; it does not modify your files.*
 
+![the image](./images/demo2.jpeg)
+
+
 ---
 
 ## Instalation
