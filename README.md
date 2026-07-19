@@ -12,7 +12,7 @@ Apio reads your HTTP files, parses and extracts the requests, and lets you execu
 
 ---
 
-## Instalation
+## Installation
 Run `./build.sh` to build the binary and `./build.sh install` to install it locally at `~/.local/bin/apio`
 
 If you choose to install it locally, run `apio` to start<br>
