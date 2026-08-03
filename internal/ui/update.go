@@ -4,11 +4,13 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"sort"
 	"strings"
 
 	"github.com/atotto/clipboard"
 
 	tea "charm.land/bubbletea/v2"
+	"charm.land/lipgloss/v2"
 	"github.com/twodigitss/apio/internal/core/finder"
 	"github.com/twodigitss/apio/internal/core/parser/lexer"
 	"github.com/twodigitss/apio/internal/core/parser/models"
@@ -61,7 +63,29 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.response = msg.Response
 		// m.responseBody = msg.Body
 
-		m.viewer.Viewport.SetContent(fmt.Sprintf("Status: %s \nProtocol: %s\n\n%s\n", m.response.Status, m.response.Proto, m.responseBody))
+		//some colors
+		Status := lipgloss.NewStyle().Bold(true).Render("Status")
+		Protocol := lipgloss.NewStyle().Bold(true).Render("Protocol")
+		Payload := lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color(data.ColorResponse(200))).Render("Payload")
+		Headers := lipgloss.NewStyle().Bold(true).Render("Headers")
+
+		var Response string = "{}"
+		if m.responseBody != "" {
+			Response = m.responseBody
+		}
+
+		m.viewer.Viewport.SetContent(
+			fmt.Sprintf("%s: %s \n%s: %s\n\n%s: %s\n\n%s:\n%s",
+				Status,
+				lipgloss.NewStyle().Foreground(lipgloss.Color(data.ColorResponse(m.response.StatusCode))).Render(strings.TrimSpace(m.response.Status)),
+				Protocol,
+				lipgloss.NewStyle().Foreground(lipgloss.Color("#b0b0b0")).Render(strings.TrimSpace(m.response.Proto)),
+				strings.TrimSpace(Payload),
+				lipgloss.NewStyle().Foreground(lipgloss.Color("#b0b0b0")).Render(strings.TrimSpace(Response)),
+				Headers,
+				prettyHeaders(m.response.Header),
+			),
+		)
 		m.viewer.Viewport.GotoTop()
 
 	case tea.WindowSizeMsg:
@@ -84,7 +108,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.KeyPressMsg:
 
 		if m.showHelp {
-			if msg.String() == "?" || msg.String() == "h" || msg.String() == "esc" {
+			if msg.String() == "?" || msg.String() == "h" || msg.String() == "esc" || msg.String() == "q" {
 				m.showHelp = false
 			}
 			return m, nil
@@ -214,4 +238,24 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	}
 
 	return m, tea.Batch(cmds...)
+}
+
+func prettyHeaders(h http.Header) string {
+	keys := make([]string, 0, len(h))
+	for k := range h {
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
+
+	var sb strings.Builder
+	for _, k := range keys {
+		for _, v := range h[k] {
+			sb.WriteString(
+				fmt.Sprintf("%s: %s\n",
+					lipgloss.NewStyle().Render(k),
+					lipgloss.NewStyle().Foreground(lipgloss.Color("#b0b0b0")).Italic(true).Render(v),
+				))
+		}
+	}
+	return sb.String()
 }

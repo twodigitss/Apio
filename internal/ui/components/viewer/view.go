@@ -25,11 +25,11 @@ func (m Model) View() string {
 	}
 
 	footerText := fmt.Sprintf(" %s ", percentStr)
-	footerStyle := lipgloss.NewStyle().Foreground(lipgloss.Color("#555555"))
+	footerStyle := lipgloss.NewStyle().Foreground(lipgloss.Color("#ececec")).Italic(true)
 	footerVal := footerStyle.Render(footerText)
 
 	width := m.Viewport.Width()
-	dashCount := max(width-lipgloss.Width(footerVal), 0)
+	dashCount := max(width-lipgloss.Width(footerVal)-2, 0)
 	dashes := strings.Repeat(" ", dashCount)
 	footer := dashes + footerVal
 

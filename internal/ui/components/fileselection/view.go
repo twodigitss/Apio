@@ -1,36 +1,65 @@
 package fileselection
 
 import (
-	"fmt"
 	"strings"
 
 	"charm.land/lipgloss/v2"
 	"charm.land/lipgloss/v2/compat"
+	"charm.land/lipgloss/v2/tree"
 )
 
-func (m Model) View() string {
+func (m Model) View(Height, Width int) string {
 	var s strings.Builder
-	s.WriteString("  Select HTTP/REST File\n\n")
+	var t = tree.New()
+	content := `
+┏┓  •  
+┣┫┏┓┓┏┓
+┛┗┣┛┗┗┛
+  ┛    
+	`
+
+	s.WriteString(content)
+	s.WriteString("Select HTTP/REST File\n\n")
+
+	// calcula el ancho máximo del nombre de archivo para uniformar
+	maxLen := 0
+	for _, file := range m.Files {
+		if l := len(file.Name()); l > maxLen {
+			maxLen = l
+		}
+	}
+
 	for i, file := range m.Files {
-		cursor := " "
-		style := lipgloss.NewStyle()
+		cursorStyle := lipgloss.NewStyle().Width(1)
+		nameStyle := lipgloss.NewStyle().Width(maxLen)
+
+		cursor := cursorStyle.Render(" ")
 		if m.FileCursor == i {
-			cursor = lipgloss.NewStyle().
+			cursor = cursorStyle.
 				Background(compat.AdaptiveColor{
 					Light: lipgloss.Color("#000000"),
 					Dark:  lipgloss.Color("#f1f1f1"),
 				}).
-				PaddingLeft(1).
 				Blink(true).
-				Render("")
-
-			style = style.Bold(true)
+				Render(" ")
+			nameStyle = nameStyle.Bold(true).Foreground(lipgloss.Color("#A8E6CF"))
 		}
-		s.WriteString(fmt.Sprintf("%s %s\n", cursor, style.Render(file.Name())))
+
+		body := cursor + " " + nameStyle.Render(file.Name())
+		t.Child(body)
 	}
-	s.WriteString("\n  [esc/f] cancel")
+
+	s.WriteString(t.String() + "\n\n\n")
+	s.WriteString(
+		lipgloss.NewStyle().Foreground(lipgloss.Color("#b0b0b0")).Render("[esc/f] cancel\n\n"),
+	)
 
 	return lipgloss.NewStyle().
 		Padding(1, 3).
+		Height(Height).
+		Width(Width).
+		Align(lipgloss.Center, lipgloss.Center).
+		Border(lipgloss.NormalBorder(), true, true).
+		BorderForeground(lipgloss.Color("#2a2a2a")).
 		Render(s.String())
 }

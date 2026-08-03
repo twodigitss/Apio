@@ -1,0 +1,55 @@
+@api = jsonplaceholder.typicode.com
+@user = twodigitss
+
+### 13. 418 I'm a Teapot - GET (código real de la RFC 2324, httpbin lo soporta)
+GET https://httpbin.org/status/301
+Content-Type: application/json
+Accept: application/json
+Cache-Control: max-age=604800
+Age: 100
+Date: Wed, 27 Apr 2023 07:28:00 GMT
+
+###Create a post
+POST https://{{api}}/posts
+Content-Type: application/json
+Accept: application/json
+Token: Bearer jwtstring
+
+{
+  "title" : "apio test",
+  "body" : "sent from apio",
+  "user": "{{user}}",
+  "userId" : 3
+}
+
+### Get user
+DELETE https://{{api}}/users/1
+Accept: application/json
+
+### Get user
+GET http://localhost:4321/users/1
+Accept: application/json
+
+### Get user
+PATCH https://{{api}}/users/1
+Accept: application/json
+
+### Get user
+HEAD https://{{api}}/users/1
+Accept: application/json
+
+### Get user
+OPTIONS https://{{api}}/users/1
+Accept: application/json
+
+### Update a post 
+PUT https://{{api}}/posts/1
+Content-Type: application/json
+Accept: application/json
+
+{
+  "id": 1,
+  "title": "apio test updated",
+  "body": "updated from apio",
+  "userId": 3
+}
