@@ -7,11 +7,12 @@
 There is similar tools, such as Posting and Noodle, but i tried to focus on just reading and executing `http` files because i dont actually want to build another TUI Postman.
 Apio lets you execute your HTTP files interactively inside a Terminal.
 
-![the image](./images/demo2.jpeg)
+![the image](./images/demo2.png)
 
 ---
 
 ## Installation
+
 Run `./build.sh` to build the binary. <br/>
 Run `./build.sh install` to install it locally at `~/.local/bin/apio`
 
@@ -24,19 +25,20 @@ Note: make sure there is at least one http file on the working directory you are
 
 Navigating and running requests in `apio` is straightforward:
 
-| Key | Action |
-| :--- | :--- |
-| `↓` / `j` | Select the next request |
-| `↑` / `k` | Select the previous request |
-| `Ctrl` + `k` | Scroll up the response pane |
-| `Ctrl` + `j` | Scroll down the response pane |
-| `Enter` | Execute the selected request |
-| `y` | Copy the response body to clipboard |
-| `r` | Reload the HTTP files from disk (on-demand sync) |
-| `c` | Clear the response (returns view to request details) |
-| `f` | Select a different HTTP/REST file (if multiple files exist) |
-| `h` / `?` | Toggle help screen |
-| `q` / `Ctrl + C` | Quit apio |
+| Key              | Action                                                      |
+| :--------------- | :---------------------------------------------------------- |
+| `↓` / `j`        | Select the next request                                     |
+| `↑` / `k`        | Select the previous request                                 |
+| `Ctrl` + `k`     | Scroll up the response pane                                 |
+| `Ctrl` + `j`     | Scroll down the response pane                               |
+| `Enter`          | Execute the selected request                                |
+| `y`              | Copy the response body to clipboard                         |
+| `c`              | Clear the response (returns view to request details)        |
+| `f`              | Select a different HTTP/REST file (if multiple files exist) |
+| `h` / `?`        | Toggle help screen                                          |
+| `q` / `Ctrl + C` | Quit apio                                                   |
+
+No need to reload manually anymore. It automatically reloads when you change the HTTP file.
 
 ---
 
@@ -68,6 +70,32 @@ Token: Bearer your-jwt-token-here
 
 ---
 
+## Customization
+
+If you run `./build.sh install`, a TOML config file will be generated in your config directory:
+
+- `~/.config/apio/config.toml`.
+
+You can customize some aspects of Apio, such as:<br/>
+
+- Sidebar positioning (left or right)
+- Enable/disable glyphs
+- Enable/disable borders
+- Colors.
+
+Do not delete the file (please).
+
+---
+
+## More images
+
+![demo 2](./images/demo3.png)
+![demo 3](./images/demo4.png)
+![demo 4](./images/demo5.png)
+![demo 5](./images/demo6.png)
+
+---
+
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
@@ -75,5 +103,3 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ---
 
 Contributions, issues, and pull requests are highly welcome to help improve the parser and parser coverage!
-
-
