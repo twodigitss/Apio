@@ -23,30 +23,22 @@ go build -ldflags="-s -w" -o "$OUT_BIN" "$SRC_FILE"
 SIZE_STRIPPED=$(du -h "$OUT_BIN" | cut -f1)
 echo "✓ Compiled size (stripped): $SIZE_STRIPPED"
 
-# Check for upx availability
-# if command -v upx >/dev/null 2>&1; then
-#     echo "UPX found! Compressing binary..."
-#     if [ "$(uname)" = "Darwin" ]; then
-#         upx --force-macos "$OUT_BIN"
-#         echo "Re-signing binary..."
-#         codesign -f -s - "$OUT_BIN"
-#     else
-#         upx "$OUT_BIN"
-#     fi
-#     SIZE_COMPRESSED=$(du -h "$OUT_BIN" | cut -f1)
-#     echo "✓ Compressed size: $SIZE_COMPRESSED"
-# else
-#     echo "ℹ UPX is not installed."
-#     echo "  You can compress the binary even more (~60-70% extra reduction) by installing UPX."
-#     echo "  On macOS, you can install it running: brew install upx"
-# fi
-
-# Install if 'install' or '--install' argument is provided
+ Install if 'install' or '--install' argument is provided
 if [ "$1" = "install" ] || [ "$1" = "--install" ]; then
     echo "Installing binary to ~/.local/bin/apio..."
     mkdir -p "$HOME/.local/bin"
     cp "$OUT_BIN" "$HOME/.local/bin/apio"
     echo "✓ Installed successfully! Make sure ~/.local/bin is in your PATH."
+
+    CONFIG_DIR="$HOME/.config/apio"
+    CONFIG_FILE="$CONFIG_DIR/config.toml"
+    mkdir -p "$CONFIG_DIR"
+    if [ ! -f "$CONFIG_FILE" ]; then
+        cp "cmd/tea/config.toml" "$CONFIG_FILE"
+        echo "✓ Config installed to $CONFIG_FILE"
+    else
+        echo "  Config already exists at $CONFIG_FILE, skipping."
+    fi
 fi
 
 echo "=== Build finished successfully! ==="

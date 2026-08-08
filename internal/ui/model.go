@@ -5,15 +5,20 @@ import (
 	"os"
 
 	tea "charm.land/bubbletea/v2"
+	"github.com/twodigitss/apio/internal/core/config"
 	"github.com/twodigitss/apio/internal/core/parser/lexer"
 	"github.com/twodigitss/apio/internal/core/parser/models"
 	"github.com/twodigitss/apio/internal/ui/components/fileselection"
 	"github.com/twodigitss/apio/internal/ui/components/sidebar"
 	"github.com/twodigitss/apio/internal/ui/components/viewer"
+	data "github.com/twodigitss/apio/internal/ui/data"
 )
 
 // Ensure Model implements tea.Model
 var _ tea.Model = Model{}
+
+// ponytail: cached once — config.Default() reads disk on every call
+var cfg = config.Default()
 
 type Model struct {
 	selectingFile  bool
@@ -41,7 +46,7 @@ func New(dir []os.DirEntry, file []byte) Model {
 
 	initialContent := ""
 	if len(tokens) > 0 {
-		initialContent = currentRequest.Print()
+		initialContent = currentRequest.PrintV2(cfg.UI.Glyphs)
 	}
 
 	return Model{
@@ -50,7 +55,7 @@ func New(dir []os.DirEntry, file []byte) Model {
 		response:       http.Response{},
 		sidebar:        sidebar.New(tokens),
 		fileSelection:  fileselection.New(dir),
-		viewer:         viewer.New(initialContent),
+		viewer:         viewer.New(initialContent, data.GetColorByHttpMethod(currentRequest.Method)),
 	}
 }
 

@@ -4,20 +4,25 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"sort"
 	"strings"
 
 	"github.com/atotto/clipboard"
 
 	tea "charm.land/bubbletea/v2"
 	"charm.land/lipgloss/v2"
-	"github.com/twodigitss/apio/internal/core/config"
 	"github.com/twodigitss/apio/internal/core/finder"
 	"github.com/twodigitss/apio/internal/core/parser/lexer"
 	"github.com/twodigitss/apio/internal/core/parser/models"
 	"github.com/twodigitss/apio/internal/core/runner"
-	"github.com/twodigitss/apio/internal/ui/data"
+	"github.com/twodigitss/apio/internal/core/shared"
+	data "github.com/twodigitss/apio/internal/ui/data"
 )
+
+type RunResponseMsg struct {
+	Response http.Response
+	Body     string
+	Err      error
+}
 
 func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var (
@@ -41,7 +46,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	switch msg := msg.(type) {
 
-	case data.RunResponseMsg:
+	case RunResponseMsg:
 		m.viewer.Loading = false
 
 		if msg.Err != nil {
@@ -72,14 +77,14 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 		m.viewer.Viewport.SetContent(
 			fmt.Sprintf("%s: %s \n%s: %s\n\n%s: %s\n\n%s:\n%s",
-				lipgloss.NewStyle().Render(" Status"),
+				lipgloss.NewStyle().Render(shared.Label("", "Status", cfg.UI.Glyphs)),
 				lipgloss.NewStyle().Foreground(lipgloss.Color(data.ColorResponse(m.response.StatusCode))).Render(strings.TrimSpace(m.response.Status)),
-				lipgloss.NewStyle().Bold(true).Render("󰿘 Protocol"),
-				lipgloss.NewStyle().Foreground(lipgloss.Color(config.Default().Colors.SUBTEXT)).Render(strings.TrimSpace(m.response.Proto)),
+				lipgloss.NewStyle().Bold(true).Render(shared.Label("󰿘", "Protocol", cfg.UI.Glyphs)),
+				lipgloss.NewStyle().Foreground(lipgloss.Color(cfg.Colors.SUBTEXT)).Render(strings.TrimSpace(m.response.Proto)),
 				lipgloss.NewStyle().Bold(true).Render("Payload"),
-				lipgloss.NewStyle().Foreground(lipgloss.Color(config.Default().Colors.SUBTEXT)).Render(strings.TrimSpace(Response)),
-				lipgloss.NewStyle().Bold(true).Render("󰓹 Headers"),
-				prettyHeaders(m.response.Header),
+				lipgloss.NewStyle().Foreground(lipgloss.Color(cfg.Colors.SUBTEXT)).Render(strings.TrimSpace(Response)),
+				lipgloss.NewStyle().Bold(true).Render(shared.Label("󰓹", "Headers", cfg.UI.Glyphs)),
+				shared.PrettyHeaders(m.response.Header, cfg.Colors.SUBTEXT),
 			),
 		)
 		m.viewer.Viewport.GotoTop()
@@ -128,7 +133,8 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 						m.sidebar.Cursor = 0
 						if len(tokens) > 0 {
 							m.currentRequest = tokens[0]
-							m.viewer.Viewport.SetContent(m.currentRequest.PrintV2())
+							m.viewer.SetColor(data.GetColorByHttpMethod(m.currentRequest.Method))
+							m.viewer.Viewport.SetContent(m.currentRequest.PrintV2(cfg.UI.Glyphs))
 						} else {
 							m.currentRequest = models.Tokens{}
 							m.viewer.Viewport.SetContent("")
@@ -161,8 +167,8 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.response = http.Response{}
 				m.responseBody = ""
 				m.currentRequest = m.sidebar.Requests[m.sidebar.Cursor]
-
-				m.viewer.Viewport.SetContent(m.currentRequest.PrintV2())
+				m.viewer.SetColor(data.GetColorByHttpMethod(m.currentRequest.Method))
+				m.viewer.Viewport.SetContent(m.currentRequest.PrintV2(cfg.UI.Glyphs))
 				m.viewer.Viewport.GotoTop()
 			}
 
@@ -176,14 +182,14 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, func() tea.Msg {
 				res, err := runner.Run(req)
 				if err != nil {
-					return data.RunResponseMsg{Err: err}
+					return RunResponseMsg{Err: err}
 				}
 				var bodyBytes []byte
 				if res.Body != nil {
 					bodyBytes, _ = io.ReadAll(res.Body)
 					res.Body.Close()
 				}
-				return data.RunResponseMsg{
+				return RunResponseMsg{
 					Response: res,
 					Body:     string(bodyBytes),
 				}
@@ -211,7 +217,8 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 
 			m.currentRequest = m.sidebar.Requests[m.sidebar.Cursor]
-			m.viewer.Viewport.SetContent(m.currentRequest.PrintV2())
+			m.viewer.SetColor(data.GetColorByHttpMethod(m.currentRequest.Method))
+			m.viewer.Viewport.SetContent(m.currentRequest.PrintV2(cfg.UI.Glyphs))
 			m.viewer.Viewport.GotoTop()
 
 		case "c":
@@ -219,7 +226,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.response.StatusCode = 0
 			m.responseBody = ""
 
-			m.viewer.Viewport.SetContent(m.currentRequest.PrintV2())
+			m.viewer.Viewport.SetContent(m.currentRequest.PrintV2(cfg.UI.Glyphs))
 			m.viewer.Viewport.GotoTop()
 		}
 
@@ -235,23 +242,4 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	}
 
 	return m, tea.Batch(cmds...)
-}
-
-func prettyHeaders(h http.Header) string {
-	keys := make([]string, 0, len(h))
-	for k := range h {
-		keys = append(keys, k)
-	}
-	sort.Strings(keys)
-
-	var sb strings.Builder
-	for _, k := range keys {
-		for _, v := range h[k] {
-			fmt.Fprintf(&sb, " • %s: %s\n",
-				lipgloss.NewStyle().Render(k),
-				lipgloss.NewStyle().Foreground(lipgloss.Color(config.Default().Colors.INFRATEXT)).Italic(true).Render(v),
-			)
-		}
-	}
-	return sb.String()
 }

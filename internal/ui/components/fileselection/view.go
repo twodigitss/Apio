@@ -9,6 +9,8 @@ import (
 	"github.com/twodigitss/apio/internal/core/config"
 )
 
+var cfg = config.Default()
+
 func (m Model) View(Height, Width int) string {
 	var s strings.Builder
 	var t = tree.New()
@@ -60,7 +62,7 @@ func (m Model) View(Height, Width int) string {
 		Height(Height).
 		Width(Width).
 		Align(lipgloss.Center, lipgloss.Center).
-		Border(lipgloss.NormalBorder(), true, true).
+		Border(lipgloss.NormalBorder(), cfg.UI.Borders, cfg.UI.Borders).
 		BorderForeground(lipgloss.Color(config.Default().Colors.INFRABORDER)).
 		Render(s.String())
 }

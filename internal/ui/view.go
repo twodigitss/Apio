@@ -5,9 +5,9 @@ import (
 
 	tea "charm.land/bubbletea/v2"
 	"charm.land/lipgloss/v2"
-	"github.com/twodigitss/apio/internal/core/config"
+	"github.com/twodigitss/apio/internal/core/shared"
 	"github.com/twodigitss/apio/internal/ui/components/help"
-	"github.com/twodigitss/apio/internal/ui/data"
+	data "github.com/twodigitss/apio/internal/ui/data"
 )
 
 func (m Model) View() tea.View {
@@ -40,47 +40,53 @@ func (m Model) View() tea.View {
 		MarginTop(1).
 		MarginBottom(1).
 		Bold(true).
-		// Border(lipgloss.RoundedBorder(), true, true).
-		// BorderForeground(lipgloss.Color("#4a4a4a")).
-		// Foreground(lipgloss.Color(color)).
 		Render(
 			lipgloss.JoinHorizontal(
 				lipgloss.Center,
-				lipgloss.NewStyle().Foreground(lipgloss.Color(color)).Render(" "),
-				lipgloss.NewStyle().
-					Render(m.fileSelection.Files[m.fileSelection.FileCursor].Name()),
+
+				shared.Label(
+					lipgloss.NewStyle().Foreground(lipgloss.Color(color)).Render(""),
+					lipgloss.NewStyle().Render(m.fileSelection.Files[m.fileSelection.FileCursor].Name()),
+					cfg.UI.Glyphs,
+				),
 				" - ",
 				lipgloss.NewStyle().
-					Foreground(lipgloss.Color(config.Default().Colors.SUBTEXT)).
+					Foreground(lipgloss.Color(cfg.Colors.SUBTEXT)).
 					Render(strconv.Itoa(len(m.sidebar.Requests))+" Requests"),
 				//
 			),
 		)
 
-	left := lipgloss.NewStyle().Width(sidebarWidth).
+	leftStyle := lipgloss.NewStyle().Width(sidebarWidth).
 		PaddingLeft(2).
 		PaddingRight(2).
-		Height(m.Height).
-		Border(lipgloss.NormalBorder(), true, true).
-		BorderForeground(lipgloss.Color(config.Default().Colors.BORDER)).
-		// Background(lipgloss.Color("#121212")).
-		Render(
-			lipgloss.JoinVertical(lipgloss.Top, topBar, m.sidebar.View(sidebarWidth)),
-			// m.sidebar.View(sidebarWidth),
-		)
+		Height(m.Height)
 
-	right := lipgloss.NewStyle().Width(viewerWidth).
+	if cfg.UI.Borders {
+		leftStyle = leftStyle.Border(lipgloss.NormalBorder()).
+			BorderForeground(lipgloss.Color(cfg.Colors.BORDER))
+	}
+
+	left := leftStyle.Render(
+		lipgloss.JoinVertical(lipgloss.Top, topBar, m.sidebar.View(sidebarWidth)),
+		// m.sidebar.View(sidebarWidth),
+	)
+
+	rightStyle := lipgloss.NewStyle().Width(viewerWidth).
 		PaddingLeft(4).
 		PaddingRight(4).
 		PaddingTop(1).
-		Height(m.Height).
-		Border(lipgloss.RoundedBorder(), true, true).
-		BorderForeground(lipgloss.Color(config.Default().Colors.INFRABORDER)).
-		// Background(lipgloss.Color("#1f1f1f")).
-		Render(m.viewer.View())
+		Height(m.Height)
+
+	if cfg.UI.Borders {
+		rightStyle = rightStyle.Border(lipgloss.NormalBorder()).
+			BorderForeground(lipgloss.Color(cfg.Colors.INFRABORDER))
+	}
+
+	right := rightStyle.Render(m.viewer.View())
 
 	var res string
-	if config.Default().UI.Sidebar == "left" {
+	if cfg.UI.Sidebar == "left" {
 		res = lipgloss.JoinHorizontal(lipgloss.Top, left, right)
 	} else {
 		res = lipgloss.JoinHorizontal(lipgloss.Top, right, left)

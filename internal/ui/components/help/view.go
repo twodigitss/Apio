@@ -26,6 +26,7 @@ var headerStyle = lipgloss.NewStyle().Foreground(lipgloss.Color(config.Default()
 var cellStyle = lipgloss.NewStyle().Padding(0, 1).Width(25).Align(lipgloss.Center, lipgloss.Center)
 var oddRowStyle = cellStyle.Foreground(lipgloss.Color(config.Default().Colors.INFRATEXT))
 var evenRowStyle = cellStyle.Foreground(lipgloss.Color(config.Default().Colors.TEXT))
+var cfg = config.Default()
 
 func View(Height, Width int) string {
 	var s strings.Builder
@@ -64,7 +65,7 @@ func View(Height, Width int) string {
 	return lipgloss.NewStyle().
 		Height(Height).
 		Width(Width).
-		Border(lipgloss.NormalBorder(), true, true).
+		Border(lipgloss.NormalBorder(), cfg.UI.Borders, cfg.UI.Borders).
 		Align(lipgloss.Center, lipgloss.Center).
 		BorderForeground(lipgloss.Color(config.Default().Colors.INFRABORDER)).
 		Render(s.String())

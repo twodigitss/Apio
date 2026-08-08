@@ -7,7 +7,8 @@ import (
 	"charm.land/lipgloss/v2"
 	"charm.land/lipgloss/v2/compat"
 	"github.com/twodigitss/apio/internal/core/config"
-	"github.com/twodigitss/apio/internal/ui/data"
+	"github.com/twodigitss/apio/internal/core/shared"
+	data "github.com/twodigitss/apio/internal/ui/data"
 )
 
 func (m Model) View(width int) string {
@@ -29,7 +30,7 @@ func (m Model) View(width int) string {
 
 		url := strings.TrimPrefix(choice.URL, "https://")
 		url = strings.TrimPrefix(url, "http://")
-		urlTitle := data.Truncate(url, width-21) //magic number goes brrr
+		urlTitle := shared.Truncate(url, width-21) //magic number goes brrr
 
 		fmt.Fprintf(&s, "%s %s %s\n",
 			cursor, style.Bold(true).Render(choice.Method),

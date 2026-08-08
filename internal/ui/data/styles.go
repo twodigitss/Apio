@@ -5,7 +5,6 @@ import (
 
 	"charm.land/lipgloss/v2"
 	"github.com/twodigitss/apio/internal/core/config"
-	"github.com/twodigitss/apio/internal/shared"
 )
 
 var styles = map[string]string{
@@ -19,23 +18,25 @@ var styles = map[string]string{
 	"EXTRA":   config.Default().Colors.EXTRA,
 }
 
-func StyleHttpMethod(line string) lipgloss.Style {
-	var prefix string
-	for _, v := range shared.HttpMethods {
-		if strings.HasPrefix(strings.TrimSpace(line), v) {
-			prefix = v
+// ponytail: shared prefix-scan extracted once
+func methodColor(line string) string {
+	for k := range styles {
+		if k != "EXTRA" && strings.HasPrefix(strings.TrimSpace(line), k) {
+			return styles[k]
 		}
 	}
+	return ""
+}
 
+func StyleHttpMethod(line string) lipgloss.Style {
 	return lipgloss.NewStyle().
 		Bold(true).
 		Foreground(lipgloss.Color("#000")).
-		Background(lipgloss.Color(styles[prefix])).
+		Background(lipgloss.Color(methodColor(line))).
 		Width(9).
 		Align(lipgloss.Center).
 		PaddingLeft(1).
 		PaddingRight(1)
-
 }
 
 func ColorResponse(httpCode int) string {
@@ -56,11 +57,5 @@ func ColorResponse(httpCode int) string {
 }
 
 func GetColorByHttpMethod(line string) string {
-	var prefix string
-	for _, v := range shared.HttpMethods {
-		if strings.HasPrefix(strings.TrimSpace(line), v) {
-			prefix = v
-		}
-	}
-	return styles[prefix]
+	return methodColor(line)
 }

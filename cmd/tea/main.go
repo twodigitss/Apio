@@ -6,14 +6,11 @@ import (
 	"os"
 
 	tea "charm.land/bubbletea/v2"
-	"github.com/twodigitss/apio/configs"
 	"github.com/twodigitss/apio/internal/core/finder"
 	"github.com/twodigitss/apio/internal/ui"
 )
 
 func main() {
-	configs.Init()
-
 	thisDir, err := finder.GetFiles(".")
 	if err != nil || len(thisDir) <= 0 {
 		if len(thisDir) <= 0 {
