@@ -30,7 +30,7 @@ func (t Tokens) Label() string {
 func (t Tokens) PrintV2(glyphs bool) string {
 	var s strings.Builder
 
-	var protocol string = "HTTP/2.0 (default)"
+	var protocol string = "HTTP/2.0"
 	if t.Protocol != "" {
 		protocol = t.Protocol
 	}

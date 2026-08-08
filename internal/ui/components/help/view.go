@@ -14,7 +14,7 @@ var rows = [][]string{
 	{"ctrl+j", "Scroll down"},
 	{"ctrl+k", "Scroll up"},
 	{"enter", "Run"},
-	{"r", "Reload"},
+	// {"r", "Reload"},
 	{"c", "Clear"},
 	{"f", "Files"},
 	{"h / ?", "Help"},

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"path/filepath"
 	"strings"
 
 	"github.com/atotto/clipboard"
@@ -45,6 +46,27 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	}
 
 	switch msg := msg.(type) {
+
+	case FileChangedMsg:
+		selectedFileEntry := m.fileSelection.Files[m.fileSelection.FileCursor]
+		fileBytes, err := finder.ReadFile(selectedFileEntry)
+		if err == nil {
+			reloadedRequests, err := lexer.FileToArrTokens(fileBytes)
+			if err == nil {
+				m.sidebar.Requests = reloadedRequests
+				if m.sidebar.Cursor >= len(m.sidebar.Requests) {
+					m.sidebar.Cursor = max(0, len(m.sidebar.Requests)-1)
+				}
+				if len(m.sidebar.Requests) > 0 {
+					m.currentRequest = m.sidebar.Requests[m.sidebar.Cursor]
+					m.viewer.SetColor(data.GetColorByHttpMethod(m.currentRequest.Method))
+					m.viewer.Viewport.SetContent(m.currentRequest.PrintV2(cfg.UI.Glyphs))
+					m.viewer.Viewport.GotoTop()
+				}
+			}
+		}
+		// Re-enganchar — sin esto solo detecta el primer cambio
+		return m, waitForFileChange(m.watcher)
 
 	case RunResponseMsg:
 		m.viewer.Loading = false
@@ -142,6 +164,12 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 						m.viewer.Viewport.GotoTop()
 					}
 				}
+				// Actualizar el watcher al nuevo archivo
+				newPath := filepath.Join(finder.WorkingDir, selectedFileEntry.Name())
+				for _, watched := range m.watcher.WatchList() {
+					_ = m.watcher.Remove(watched)
+				}
+				_ = m.watcher.Add(newPath)
 				m.selectingFile = false
 				return m, nil
 			}
@@ -195,31 +223,31 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				}
 			}
 
-		case "r":
-			selectedFileEntry := m.fileSelection.Files[m.fileSelection.FileCursor]
-			fileBytes, err := finder.ReadFile(selectedFileEntry)
-			if err != nil {
-				return m, nil
-			}
+		// case "r":
+		// 	selectedFileEntry := m.fileSelection.Files[m.fileSelection.FileCursor]
+		// 	fileBytes, err := finder.ReadFile(selectedFileEntry)
+		// 	if err != nil {
+		// 		return m, nil
+		// 	}
 
-			reloadedRequests, err := lexer.FileToArrTokens(fileBytes)
-			if err != nil {
-				return m, nil
-			}
+		// 	reloadedRequests, err := lexer.FileToArrTokens(fileBytes)
+		// 	if err != nil {
+		// 		return m, nil
+		// 	}
 
-			m.sidebar.Requests = reloadedRequests
+		// 	m.sidebar.Requests = reloadedRequests
 
-			if m.sidebar.Cursor >= len(m.sidebar.Requests) {
-				m.sidebar.Cursor = len(m.sidebar.Requests) - 1
-			}
-			if m.sidebar.Cursor < 0 {
-				m.sidebar.Cursor = 0
-			}
+		// 	if m.sidebar.Cursor >= len(m.sidebar.Requests) {
+		// 		m.sidebar.Cursor = len(m.sidebar.Requests) - 1
+		// 	}
+		// 	if m.sidebar.Cursor < 0 {
+		// 		m.sidebar.Cursor = 0
+		// 	}
 
-			m.currentRequest = m.sidebar.Requests[m.sidebar.Cursor]
-			m.viewer.SetColor(data.GetColorByHttpMethod(m.currentRequest.Method))
-			m.viewer.Viewport.SetContent(m.currentRequest.PrintV2(cfg.UI.Glyphs))
-			m.viewer.Viewport.GotoTop()
+		// 	m.currentRequest = m.sidebar.Requests[m.sidebar.Cursor]
+		// 	m.viewer.SetColor(data.GetColorByHttpMethod(m.currentRequest.Method))
+		// 	m.viewer.Viewport.SetContent(m.currentRequest.PrintV2(cfg.UI.Glyphs))
+		// 	m.viewer.Viewport.GotoTop()
 
 		case "c":
 			m.response.Body = nil
