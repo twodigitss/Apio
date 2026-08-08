@@ -64,11 +64,6 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		// m.responseBody = msg.Body
 
 		//some colors
-		Status := lipgloss.NewStyle().Bold(true).Render("Status")
-		Protocol := lipgloss.NewStyle().Bold(true).Render("Protocol")
-		Payload := lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color(data.ColorResponse(200))).Render("Payload")
-		Headers := lipgloss.NewStyle().Bold(true).Render("Headers")
-
 		var Response string = "{}"
 		if m.responseBody != "" {
 			Response = m.responseBody
@@ -76,17 +71,18 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 		m.viewer.Viewport.SetContent(
 			fmt.Sprintf("%s: %s \n%s: %s\n\n%s: %s\n\n%s:\n%s",
-				Status,
-				lipgloss.NewStyle().Foreground(lipgloss.Color(data.ColorResponse(m.response.StatusCode))).Render(strings.TrimSpace(m.response.Status)),
-				Protocol,
+				lipgloss.NewStyle().Bold(true).Render("󰿘 Protocol"),
 				lipgloss.NewStyle().Foreground(lipgloss.Color("#b0b0b0")).Render(strings.TrimSpace(m.response.Proto)),
-				strings.TrimSpace(Payload),
-				lipgloss.NewStyle().Foreground(lipgloss.Color("#b0b0b0")).Render(strings.TrimSpace(Response)),
-				Headers,
+				lipgloss.NewStyle().Foreground(lipgloss.Color(data.ColorResponse(m.response.StatusCode))).Bold(true).Render(" Status"),
+				lipgloss.NewStyle().Foreground(lipgloss.Color(data.ColorResponse(m.response.StatusCode))).Render(strings.TrimSpace(m.response.Status)),
+				lipgloss.NewStyle().Bold(true).Render("Payload"),
+				lipgloss.NewStyle().Foreground(lipgloss.Color("#b0b0b0")).Render((Response)),
+				lipgloss.NewStyle().Bold(true).Render("󰓹 Headers"),
 				prettyHeaders(m.response.Header),
 			),
 		)
 		m.viewer.Viewport.GotoTop()
+		return m, nil
 
 	case tea.WindowSizeMsg:
 		m.Width = msg.Width
@@ -250,11 +246,10 @@ func prettyHeaders(h http.Header) string {
 	var sb strings.Builder
 	for _, k := range keys {
 		for _, v := range h[k] {
-			sb.WriteString(
-				fmt.Sprintf("%s: %s\n",
-					lipgloss.NewStyle().Render(k),
-					lipgloss.NewStyle().Foreground(lipgloss.Color("#b0b0b0")).Italic(true).Render(v),
-				))
+			fmt.Fprintf(&sb, " • %s: %s\n",
+				lipgloss.NewStyle().Render(k),
+				lipgloss.NewStyle().Foreground(lipgloss.Color("#b0b0b0")).Italic(true).Render(v),
+			)
 		}
 	}
 	return sb.String()

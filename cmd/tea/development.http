@@ -2,7 +2,7 @@
 @user = twodigitss
 
 ### 13. 418 I'm a Teapot - GET (código real de la RFC 2324, httpbin lo soporta)
-GET https://httpbin.org/status/301
+GET https://httpbin.org/status/301 HTTP/3
 Content-Type: application/json
 Accept: application/json
 Cache-Control: max-age=604800
@@ -42,7 +42,7 @@ Accept: application/json
 OPTIONS https://{{api}}/users/1
 Accept: application/json
 
-### Update a post 
+### Update a post
 PUT https://{{api}}/posts/1
 Content-Type: application/json
 Accept: application/json

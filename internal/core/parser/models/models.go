@@ -5,17 +5,19 @@ import (
 )
 
 type Tokens struct {
-	Method  string
-	URL     string
-	Headers map[string]string
-	Body    string
+	Method   string
+	URL      string
+	Protocol string
+	Headers  map[string]string
+	Body     string
 }
 
 type printing struct {
-	Method  string            `json:"Method"`
-	Url     string            `json:"Url"`
-	Headers map[string]string `json:"Headers"`
-	Body    any               `json:"Body"`
+	Method   string            `json:"Method"`
+	Url      string            `json:"Url"`
+	Protocol string            `json:"Protocol,omitempty"`
+	Headers  map[string]string `json:"Headers"`
+	Body     any               `json:"Body"`
 }
 
 func (t Tokens) Print() string {
@@ -30,10 +32,11 @@ func (t Tokens) Print() string {
 	}
 
 	b := printing{
-		Method:  t.Method,
-		Url:     t.URL,
-		Headers: t.Headers,
-		Body:    bodyVal,
+		Method:   t.Method,
+		Url:      t.URL,
+		Protocol: t.Protocol,
+		Headers:  t.Headers,
+		Body:     bodyVal,
 	}
 
 	b_, err := json.MarshalIndent(b, "", "    ")

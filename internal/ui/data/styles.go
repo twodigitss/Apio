@@ -30,7 +30,7 @@ func StyleHttpMethod(line string) lipgloss.Style {
 		Bold(true).
 		Foreground(lipgloss.Color("#000")).
 		Background(lipgloss.Color(styles[prefix])).
-		Width(10).
+		Width(9).
 		Align(lipgloss.Center).
 		PaddingLeft(1).
 		PaddingRight(1)

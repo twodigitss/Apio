@@ -37,7 +37,6 @@ func View(Height, Width int) string {
 
 	s.WriteString(content)
 	s.WriteString("v1.1\n\n")
-	s.WriteString("Keybinds\n\n")
 
 	t := table.New().
 		Border(lipgloss.NormalBorder()).

@@ -28,13 +28,11 @@ func (m Model) View(width int) string {
 
 		url := strings.TrimPrefix(choice.URL, "https://")
 		url = strings.TrimPrefix(url, "http://")
-		urlTitle := data.Truncate(url, width-25) //magic number goes brrr
+		urlTitle := data.Truncate(url, width-21) //magic number goes brrr
 
-		s.WriteString(
-			fmt.Sprintf("%s %s %s\n",
-				cursor, style.Bold(true).Render(choice.Method),
-				lipgloss.NewStyle().Foreground(lipgloss.Color("#e0e0e0")).Render(urlTitle),
-			))
+		fmt.Fprintf(&s, "%s %s %s\n",
+			cursor, style.Bold(true).Render(choice.Method),
+			lipgloss.NewStyle().Foreground(lipgloss.Color("#e0e0e0")).Render(urlTitle))
 	}
 	return s.String()
 }
