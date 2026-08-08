@@ -1,0 +1,24 @@
+# Visual aspects of the TUI
+[UI]
+glyphs  = true    # Requires any nerd font to work.
+sidebar = "left"  # Values: left or right
+borders = true    # All borders 
+
+# Theme colors
+[COLORS]
+GET =     "#A8E6CF"
+POST =    "#FFD3B6"
+PUT =     "#A9DEF9"
+DELETE =  "#FFADAD"
+PATCH =   "#D8B4F8"
+HEAD =    "#A0E7E5"
+OPTIONS = "#FFC6FF"
+EXTRA =   "#b3e6a8"
+
+TEXT =      "#F5F5F5"
+SUBTEXT =   "#CECECE"
+INFRATEXT = "#ABABAB"
+
+BORDER =      "#F5F5F5"
+SUBBORDER =   "#4A4A4A"
+INFRABORDER = "#2A2A2A"

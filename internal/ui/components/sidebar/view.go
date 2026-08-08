@@ -6,33 +6,35 @@ import (
 
 	"charm.land/lipgloss/v2"
 	"charm.land/lipgloss/v2/compat"
-	"github.com/twodigitss/apio/internal/ui/data"
+	"github.com/twodigitss/apio/internal/core/config"
+	"github.com/twodigitss/apio/internal/core/shared"
+	data "github.com/twodigitss/apio/internal/ui/data"
 )
 
 func (m Model) View(width int) string {
 	var s strings.Builder
 	for i, choice := range m.Requests {
 		cursor := " "
+		style := data.StyleHttpMethod(choice.Method)
+
 		if m.Cursor == i {
 			cursor = lipgloss.NewStyle().
 				Background(compat.AdaptiveColor{
-					Light: lipgloss.Color("#000000"),
-					Dark:  lipgloss.Color("#f1f1f1"),
+					Light: style.GetBackground(),
+					Dark:  style.GetBackground(),
 				}).
 				PaddingLeft(1).
 				Blink(true).
 				Render("")
 		}
 
-		style := data.StyleHttpMethod(choice.Method)
 		url := strings.TrimPrefix(choice.URL, "https://")
 		url = strings.TrimPrefix(url, "http://")
-		urlTitle := data.Truncate(url, width-25) //magic number goes brrr
+		urlTitle := shared.Truncate(url, width-21) //magic number goes brrr
 
-		s.WriteString(
-			fmt.Sprintf("%s %s %s\n",
-				cursor, style.Bold(true).Render(choice.Method), urlTitle,
-			))
+		fmt.Fprintf(&s, "%s %s %s\n",
+			cursor, style.Bold(true).Render(choice.Method),
+			lipgloss.NewStyle().Foreground(lipgloss.Color(config.Default().Colors.TEXT)).Render(urlTitle))
 	}
 	return s.String()
 }

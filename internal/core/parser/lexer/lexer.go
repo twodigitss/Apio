@@ -18,10 +18,13 @@ func Lexer(block string) (models.Tokens, error) {
 		return models.Tokens{}, fmt.Errorf("invalid request line: %q", lines[i])
 	}
 	req := models.Tokens{
-		Method:  parts[0],
-		URL:     parts[1],
-		Headers: make(map[string]string),
-		Body:    "",
+		Method:   parts[0],
+		URL:      parts[1],
+		Headers:  make(map[string]string),
+		Body:     "",
+	}
+	if len(parts) >= 3 {
+		req.Protocol = parts[2]
 	}
 	i++
 

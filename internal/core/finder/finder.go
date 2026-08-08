@@ -5,24 +5,24 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/twodigitss/apio/configs"
-	"github.com/twodigitss/apio/internal/shared"
+	"github.com/twodigitss/apio/internal/core/shared"
 )
 
-// Would it be better if i do include the full path?
+var (
+	WorkingDir string = "."
+)
+
 func GetFiles(path string) ([]os.DirEntry, error) {
 	if path == "" {
-		path = configs.WorkingDir
+		path = WorkingDir
 	}
 	_path := shared.ExpandPath(path)
 
-	configs.SetWorkingDir(_path)
+	WorkingDir = shared.ExpandPath(_path)
 
-	{
-		pathexists := shared.PathExists(_path)
-		if !pathexists {
-			return nil, fmt.Errorf("This path seems to not exist")
-		}
+	// ponytail: inlined shared.PathExists
+	if _, err := os.Stat(_path); err != nil {
+		return nil, fmt.Errorf("This path seems to not exist")
 	}
 
 	thisDir, err := os.ReadDir(_path)
@@ -49,7 +49,7 @@ func GetFiles(path string) ([]os.DirEntry, error) {
 }
 
 func ReadFile(file os.DirEntry) ([]byte, error) {
-	buffer, err := os.ReadFile(configs.WorkingDir + "/" + file.Name())
+	buffer, err := os.ReadFile(filepath.Join(WorkingDir, file.Name()))
 	if err != nil {
 		return nil, err
 	}

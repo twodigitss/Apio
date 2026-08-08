@@ -3,6 +3,7 @@ package viewer
 import (
 	"charm.land/bubbles/v2/spinner"
 	"charm.land/bubbles/v2/viewport"
+	"charm.land/lipgloss/v2"
 )
 
 type Model struct {
@@ -11,7 +12,7 @@ type Model struct {
 	Viewport viewport.Model
 }
 
-func New(initialContent string) Model {
+func New(initialContent string, color string) Model {
 	s := spinner.New()
 	s.Spinner = spinner.Dot
 
@@ -31,4 +32,8 @@ func New(initialContent string) Model {
 		Viewport: vp,
 		Loading:  false,
 	}
+}
+
+func (m *Model) SetColor(color string) {
+	m.Spinner.Style = lipgloss.NewStyle().Foreground(lipgloss.Color(color))
 }

@@ -4,12 +4,13 @@ import (
 	"encoding/json"
 	"regexp"
 	"strings"
-
-	"github.com/twodigitss/apio/internal/shared"
 )
 
+// ponytail: inlined from deleted shared/variables.go
+var httpMethods = []string{"GET", "POST", "PUT", "DELETE", "PATCH", "HEAD", "OPTIONS"}
+
 func startsWithMethod(line string) bool {
-	for _, m := range shared.HttpMethods {
+	for _, m := range httpMethods {
 		if strings.HasPrefix(strings.TrimSpace(line), m+" ") {
 			return true
 		}

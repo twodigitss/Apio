@@ -4,17 +4,26 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"path/filepath"
 	"strings"
 
 	"github.com/atotto/clipboard"
 
 	tea "charm.land/bubbletea/v2"
+	"charm.land/lipgloss/v2"
 	"github.com/twodigitss/apio/internal/core/finder"
 	"github.com/twodigitss/apio/internal/core/parser/lexer"
 	"github.com/twodigitss/apio/internal/core/parser/models"
 	"github.com/twodigitss/apio/internal/core/runner"
-	"github.com/twodigitss/apio/internal/ui/data"
+	"github.com/twodigitss/apio/internal/core/shared"
+	data "github.com/twodigitss/apio/internal/ui/data"
 )
+
+type RunResponseMsg struct {
+	Response http.Response
+	Body     string
+	Err      error
+}
 
 func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var (
@@ -38,7 +47,28 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	switch msg := msg.(type) {
 
-	case data.RunResponseMsg:
+	case FileChangedMsg:
+		selectedFileEntry := m.fileSelection.Files[m.fileSelection.FileCursor]
+		fileBytes, err := finder.ReadFile(selectedFileEntry)
+		if err == nil {
+			reloadedRequests, err := lexer.FileToArrTokens(fileBytes)
+			if err == nil {
+				m.sidebar.Requests = reloadedRequests
+				if m.sidebar.Cursor >= len(m.sidebar.Requests) {
+					m.sidebar.Cursor = max(0, len(m.sidebar.Requests)-1)
+				}
+				if len(m.sidebar.Requests) > 0 {
+					m.currentRequest = m.sidebar.Requests[m.sidebar.Cursor]
+					m.viewer.SetColor(data.GetColorByHttpMethod(m.currentRequest.Method))
+					m.viewer.Viewport.SetContent(m.currentRequest.PrintV2(cfg.UI.Glyphs))
+					m.viewer.Viewport.GotoTop()
+				}
+			}
+		}
+		// Re-enganchar — sin esto solo detecta el primer cambio
+		return m, waitForFileChange(m.watcher)
+
+	case RunResponseMsg:
 		m.viewer.Loading = false
 
 		if msg.Err != nil {
@@ -61,8 +91,26 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.response = msg.Response
 		// m.responseBody = msg.Body
 
-		m.viewer.Viewport.SetContent(fmt.Sprintf("Status: %s \nProtocol: %s\n\n%s\n", m.response.Status, m.response.Proto, m.responseBody))
+		//some colors
+		var Response string = "{}"
+		if m.responseBody != "" {
+			Response = m.responseBody
+		}
+
+		m.viewer.Viewport.SetContent(
+			fmt.Sprintf("%s: %s \n%s: %s\n\n%s: %s\n\n%s:\n%s",
+				lipgloss.NewStyle().Render(shared.Label("", "Status", cfg.UI.Glyphs)),
+				lipgloss.NewStyle().Foreground(lipgloss.Color(data.ColorResponse(m.response.StatusCode))).Render(strings.TrimSpace(m.response.Status)),
+				lipgloss.NewStyle().Bold(true).Render(shared.Label("󰿘", "Protocol", cfg.UI.Glyphs)),
+				lipgloss.NewStyle().Foreground(lipgloss.Color(cfg.Colors.SUBTEXT)).Render(strings.TrimSpace(m.response.Proto)),
+				lipgloss.NewStyle().Bold(true).Render("Payload"),
+				lipgloss.NewStyle().Foreground(lipgloss.Color(cfg.Colors.SUBTEXT)).Render(strings.TrimSpace(Response)),
+				lipgloss.NewStyle().Bold(true).Render(shared.Label("󰓹", "Headers", cfg.UI.Glyphs)),
+				shared.PrettyHeaders(m.response.Header, cfg.Colors.SUBTEXT),
+			),
+		)
 		m.viewer.Viewport.GotoTop()
+		return m, nil
 
 	case tea.WindowSizeMsg:
 		m.Width = msg.Width
@@ -84,7 +132,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.KeyPressMsg:
 
 		if m.showHelp {
-			if msg.String() == "?" || msg.String() == "h" || msg.String() == "esc" {
+			if msg.String() == "?" || msg.String() == "h" || msg.String() == "esc" || msg.String() == "q" {
 				m.showHelp = false
 			}
 			return m, nil
@@ -107,7 +155,8 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 						m.sidebar.Cursor = 0
 						if len(tokens) > 0 {
 							m.currentRequest = tokens[0]
-							m.viewer.Viewport.SetContent(m.currentRequest.Print())
+							m.viewer.SetColor(data.GetColorByHttpMethod(m.currentRequest.Method))
+							m.viewer.Viewport.SetContent(m.currentRequest.PrintV2(cfg.UI.Glyphs))
 						} else {
 							m.currentRequest = models.Tokens{}
 							m.viewer.Viewport.SetContent("")
@@ -115,6 +164,12 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 						m.viewer.Viewport.GotoTop()
 					}
 				}
+				// Actualizar el watcher al nuevo archivo
+				newPath := filepath.Join(finder.WorkingDir, selectedFileEntry.Name())
+				for _, watched := range m.watcher.WatchList() {
+					_ = m.watcher.Remove(watched)
+				}
+				_ = m.watcher.Add(newPath)
 				m.selectingFile = false
 				return m, nil
 			}
@@ -140,8 +195,8 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.response = http.Response{}
 				m.responseBody = ""
 				m.currentRequest = m.sidebar.Requests[m.sidebar.Cursor]
-
-				m.viewer.Viewport.SetContent(m.currentRequest.Print())
+				m.viewer.SetColor(data.GetColorByHttpMethod(m.currentRequest.Method))
+				m.viewer.Viewport.SetContent(m.currentRequest.PrintV2(cfg.UI.Glyphs))
 				m.viewer.Viewport.GotoTop()
 			}
 
@@ -155,50 +210,51 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, func() tea.Msg {
 				res, err := runner.Run(req)
 				if err != nil {
-					return data.RunResponseMsg{Err: err}
+					return RunResponseMsg{Err: err}
 				}
 				var bodyBytes []byte
 				if res.Body != nil {
 					bodyBytes, _ = io.ReadAll(res.Body)
 					res.Body.Close()
 				}
-				return data.RunResponseMsg{
+				return RunResponseMsg{
 					Response: res,
 					Body:     string(bodyBytes),
 				}
 			}
 
-		case "r":
-			selectedFileEntry := m.fileSelection.Files[m.fileSelection.FileCursor]
-			fileBytes, err := finder.ReadFile(selectedFileEntry)
-			if err != nil {
-				return m, nil
-			}
+		// case "r":
+		// 	selectedFileEntry := m.fileSelection.Files[m.fileSelection.FileCursor]
+		// 	fileBytes, err := finder.ReadFile(selectedFileEntry)
+		// 	if err != nil {
+		// 		return m, nil
+		// 	}
 
-			reloadedRequests, err := lexer.FileToArrTokens(fileBytes)
-			if err != nil {
-				return m, nil
-			}
+		// 	reloadedRequests, err := lexer.FileToArrTokens(fileBytes)
+		// 	if err != nil {
+		// 		return m, nil
+		// 	}
 
-			m.sidebar.Requests = reloadedRequests
+		// 	m.sidebar.Requests = reloadedRequests
 
-			if m.sidebar.Cursor >= len(m.sidebar.Requests) {
-				m.sidebar.Cursor = len(m.sidebar.Requests) - 1
-			}
-			if m.sidebar.Cursor < 0 {
-				m.sidebar.Cursor = 0
-			}
+		// 	if m.sidebar.Cursor >= len(m.sidebar.Requests) {
+		// 		m.sidebar.Cursor = len(m.sidebar.Requests) - 1
+		// 	}
+		// 	if m.sidebar.Cursor < 0 {
+		// 		m.sidebar.Cursor = 0
+		// 	}
 
-			m.currentRequest = m.sidebar.Requests[m.sidebar.Cursor]
-			m.viewer.Viewport.SetContent(m.currentRequest.Print())
-			m.viewer.Viewport.GotoTop()
+		// 	m.currentRequest = m.sidebar.Requests[m.sidebar.Cursor]
+		// 	m.viewer.SetColor(data.GetColorByHttpMethod(m.currentRequest.Method))
+		// 	m.viewer.Viewport.SetContent(m.currentRequest.PrintV2(cfg.UI.Glyphs))
+		// 	m.viewer.Viewport.GotoTop()
 
 		case "c":
 			m.response.Body = nil
 			m.response.StatusCode = 0
 			m.responseBody = ""
 
-			m.viewer.Viewport.SetContent(m.currentRequest.Print())
+			m.viewer.Viewport.SetContent(m.currentRequest.PrintV2(cfg.UI.Glyphs))
 			m.viewer.Viewport.GotoTop()
 		}
 

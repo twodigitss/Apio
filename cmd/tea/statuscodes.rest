@@ -1,0 +1,16 @@
+### 5. 301 Moved Permanently
+GET https://httpbin.org/status/301
+
+### 7. 304 Not Modified
+GET https://httpbin.org/status/304
+
+### 13. 418 I'm a Teapot - GET (código real de la RFC 2324, httpbin lo soporta)
+GET https://httpbin.org/status/418
+
+### 15. 500 Internal Server Error - POST
+POST https://httpbin.org/status/500
+Content-Type: application/json
+
+{
+  "trigger": "server_error"
+}

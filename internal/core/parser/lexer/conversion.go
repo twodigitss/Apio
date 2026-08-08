@@ -14,9 +14,6 @@ func FileToArrTokens(file []byte) ([]models.Tokens, error) {
 	}
 
 	parts := splitter.RequestSplitter(file)
-	// for i, part := range parts {
-	// 	fmt.Println("\n", "-----",i,"-----", "\n", part, )
-	// }
 
 	var requests []models.Tokens
 	for _, part := range parts {
