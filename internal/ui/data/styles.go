@@ -4,18 +4,19 @@ import (
 	"strings"
 
 	"charm.land/lipgloss/v2"
+	"github.com/twodigitss/apio/internal/core/config"
 	"github.com/twodigitss/apio/internal/shared"
 )
 
 var styles = map[string]string{
-	"GET":     "#A8E6CF",
-	"POST":    "#FFD3B6",
-	"PUT":     "#A9DEF9",
-	"DELETE":  "#FFADAD",
-	"PATCH":   "#D8B4F8",
-	"HEAD":    "#A0E7E5",
-	"OPTIONS": "#FFC6FF",
-	"EXTRA":   "#b3e6a8",
+	"GET":     config.Default().Colors.GET,
+	"POST":    config.Default().Colors.POST,
+	"PUT":     config.Default().Colors.PUT,
+	"DELETE":  config.Default().Colors.DELETE,
+	"PATCH":   config.Default().Colors.PATCH,
+	"HEAD":    config.Default().Colors.HEAD,
+	"OPTIONS": config.Default().Colors.OPTIONS,
+	"EXTRA":   config.Default().Colors.EXTRA,
 }
 
 func StyleHttpMethod(line string) lipgloss.Style {

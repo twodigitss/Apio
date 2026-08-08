@@ -6,6 +6,7 @@ import (
 	"charm.land/lipgloss/v2"
 	"charm.land/lipgloss/v2/compat"
 	"charm.land/lipgloss/v2/tree"
+	"github.com/twodigitss/apio/internal/core/config"
 )
 
 func (m Model) View(Height, Width int) string {
@@ -42,7 +43,7 @@ func (m Model) View(Height, Width int) string {
 				}).
 				Blink(true).
 				Render(" ")
-			nameStyle = nameStyle.Bold(true).Foreground(lipgloss.Color("#A8E6CF"))
+			nameStyle = nameStyle.Bold(true).Foreground(lipgloss.Color(config.Default().Colors.GET))
 		}
 
 		body := cursor + " " + nameStyle.Render(file.Name())
@@ -51,7 +52,7 @@ func (m Model) View(Height, Width int) string {
 
 	s.WriteString(t.String() + "\n\n\n")
 	s.WriteString(
-		lipgloss.NewStyle().Foreground(lipgloss.Color("#b0b0b0")).Render("[esc/f] cancel\n\n"),
+		lipgloss.NewStyle().Foreground(lipgloss.Color(config.Default().Colors.INFRATEXT)).Render("[esc/f] cancel\n\n"),
 	)
 
 	return lipgloss.NewStyle().
@@ -60,6 +61,6 @@ func (m Model) View(Height, Width int) string {
 		Width(Width).
 		Align(lipgloss.Center, lipgloss.Center).
 		Border(lipgloss.NormalBorder(), true, true).
-		BorderForeground(lipgloss.Color("#2a2a2a")).
+		BorderForeground(lipgloss.Color(config.Default().Colors.INFRABORDER)).
 		Render(s.String())
 }

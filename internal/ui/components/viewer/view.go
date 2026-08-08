@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"charm.land/lipgloss/v2"
+	"github.com/twodigitss/apio/internal/core/config"
 )
 
 func (m Model) View() string {
@@ -25,7 +26,7 @@ func (m Model) View() string {
 	}
 
 	footerText := fmt.Sprintf(" %s ", percentStr)
-	footerStyle := lipgloss.NewStyle().Foreground(lipgloss.Color("#dedede")).Italic(true)
+	footerStyle := lipgloss.NewStyle().Foreground(lipgloss.Color(config.Default().Colors.SUBTEXT)).Italic(true)
 	footerVal := footerStyle.Render(footerText)
 
 	width := m.Viewport.Width()

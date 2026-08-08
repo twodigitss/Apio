@@ -11,6 +11,7 @@ import (
 
 	tea "charm.land/bubbletea/v2"
 	"charm.land/lipgloss/v2"
+	"github.com/twodigitss/apio/internal/core/config"
 	"github.com/twodigitss/apio/internal/core/finder"
 	"github.com/twodigitss/apio/internal/core/parser/lexer"
 	"github.com/twodigitss/apio/internal/core/parser/models"
@@ -74,9 +75,9 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				lipgloss.NewStyle().Render(" Status"),
 				lipgloss.NewStyle().Foreground(lipgloss.Color(data.ColorResponse(m.response.StatusCode))).Render(strings.TrimSpace(m.response.Status)),
 				lipgloss.NewStyle().Bold(true).Render("󰿘 Protocol"),
-				lipgloss.NewStyle().Foreground(lipgloss.Color("#b0b0b0")).Render(strings.TrimSpace(m.response.Proto)),
+				lipgloss.NewStyle().Foreground(lipgloss.Color(config.Default().Colors.SUBTEXT)).Render(strings.TrimSpace(m.response.Proto)),
 				lipgloss.NewStyle().Bold(true).Render("Payload"),
-				lipgloss.NewStyle().Foreground(lipgloss.Color("#dedede")).Render(strings.TrimSpace(Response)),
+				lipgloss.NewStyle().Foreground(lipgloss.Color(config.Default().Colors.SUBTEXT)).Render(strings.TrimSpace(Response)),
 				lipgloss.NewStyle().Bold(true).Render("󰓹 Headers"),
 				prettyHeaders(m.response.Header),
 			),
@@ -248,7 +249,7 @@ func prettyHeaders(h http.Header) string {
 		for _, v := range h[k] {
 			fmt.Fprintf(&sb, " • %s: %s\n",
 				lipgloss.NewStyle().Render(k),
-				lipgloss.NewStyle().Foreground(lipgloss.Color("#b0b0b0")).Italic(true).Render(v),
+				lipgloss.NewStyle().Foreground(lipgloss.Color(config.Default().Colors.INFRATEXT)).Italic(true).Render(v),
 			)
 		}
 	}

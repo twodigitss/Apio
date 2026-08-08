@@ -6,6 +6,7 @@ import (
 
 	"charm.land/lipgloss/v2"
 	"charm.land/lipgloss/v2/compat"
+	"github.com/twodigitss/apio/internal/core/config"
 	"github.com/twodigitss/apio/internal/ui/data"
 )
 
@@ -32,7 +33,7 @@ func (m Model) View(width int) string {
 
 		fmt.Fprintf(&s, "%s %s %s\n",
 			cursor, style.Bold(true).Render(choice.Method),
-			lipgloss.NewStyle().Foreground(lipgloss.Color("#e0e0e0")).Render(urlTitle))
+			lipgloss.NewStyle().Foreground(lipgloss.Color(config.Default().Colors.TEXT)).Render(urlTitle))
 	}
 	return s.String()
 }

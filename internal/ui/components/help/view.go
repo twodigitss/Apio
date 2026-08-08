@@ -5,6 +5,7 @@ import (
 
 	"charm.land/lipgloss/v2"
 	"charm.land/lipgloss/v2/table"
+	"github.com/twodigitss/apio/internal/core/config"
 )
 
 var rows = [][]string{
@@ -21,10 +22,10 @@ var rows = [][]string{
 	{"y", "Copy body"},
 }
 
-var headerStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("#A8E6CF")).Bold(true).Align(lipgloss.Center)
+var headerStyle = lipgloss.NewStyle().Foreground(lipgloss.Color(config.Default().Colors.GET)).Bold(true).Align(lipgloss.Center)
 var cellStyle = lipgloss.NewStyle().Padding(0, 1).Width(25).Align(lipgloss.Center, lipgloss.Center)
-var oddRowStyle = cellStyle.Foreground(lipgloss.Color("#a0a0a0"))
-var evenRowStyle = cellStyle.Foreground(lipgloss.Color("#efefef"))
+var oddRowStyle = cellStyle.Foreground(lipgloss.Color(config.Default().Colors.INFRATEXT))
+var evenRowStyle = cellStyle.Foreground(lipgloss.Color(config.Default().Colors.TEXT))
 
 func View(Height, Width int) string {
 	var s strings.Builder
@@ -40,7 +41,7 @@ func View(Height, Width int) string {
 
 	t := table.New().
 		Border(lipgloss.NormalBorder()).
-		BorderStyle(lipgloss.NewStyle().Foreground(lipgloss.Color("#4e4e4e"))).
+		BorderStyle(lipgloss.NewStyle().Foreground(lipgloss.Color(config.Default().Colors.SUBBORDER))).
 		Wrap(true).
 		StyleFunc(func(row, col int) lipgloss.Style {
 			switch {
@@ -57,7 +58,7 @@ func View(Height, Width int) string {
 
 	s.WriteString(t.Render() + "\n\n\n")
 	s.WriteString(
-		lipgloss.NewStyle().Foreground(lipgloss.Color("#b0b0b0")).Render("[esc/h/q/?] cancel\n\n"),
+		lipgloss.NewStyle().Foreground(lipgloss.Color(config.Default().Colors.INFRATEXT)).Render("[esc/h/q/?] cancel\n\n"),
 	)
 
 	return lipgloss.NewStyle().
@@ -65,6 +66,6 @@ func View(Height, Width int) string {
 		Width(Width).
 		Border(lipgloss.NormalBorder(), true, true).
 		Align(lipgloss.Center, lipgloss.Center).
-		BorderForeground(lipgloss.Color("#2a2a2a")).
+		BorderForeground(lipgloss.Color(config.Default().Colors.INFRABORDER)).
 		Render(s.String())
 }
