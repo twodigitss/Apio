@@ -6,6 +6,7 @@ import (
 	tea "charm.land/bubbletea/v2"
 	"charm.land/lipgloss/v2"
 	"github.com/twodigitss/apio/internal/ui/components/help"
+	"github.com/twodigitss/apio/internal/ui/data"
 )
 
 func (m Model) View() tea.View {
@@ -29,7 +30,7 @@ func (m Model) View() tea.View {
 		return v
 	}
 
-	// color := data.GetColorByHttpMethod(m.currentRequest.Method)
+	color := data.GetColorByHttpMethod(m.currentRequest.Method)
 	// square := lipgloss.NewStyle().Background(lipgloss.Color("#fff")).Render(" ")
 
 	topBar := lipgloss.NewStyle().Width(sidebarWidth - 6).
@@ -44,7 +45,7 @@ func (m Model) View() tea.View {
 		Render(
 			lipgloss.JoinHorizontal(
 				lipgloss.Center,
-				" ",
+				lipgloss.NewStyle().Foreground(lipgloss.Color(color)).Render(" "),
 				lipgloss.NewStyle().
 					Render(m.fileSelection.Files[m.fileSelection.FileCursor].Name()),
 				" - ",

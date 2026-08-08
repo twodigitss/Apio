@@ -1,0 +1,13 @@
+[ui]
+glyphs = true
+sidebar = "left"
+
+[colors]
+GET = "#A8E6CF"
+POST = "#FFD3B6"
+PUT = "#A9DEF9"
+DELETE = "#FFADAD"
+PATCH = "#D8B4F8"
+HEAD = "#A0E7E5"
+OPTIONS = "#FFC6FF"
+EXTRA = "#b3e6a8"

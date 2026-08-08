@@ -71,12 +71,12 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 		m.viewer.Viewport.SetContent(
 			fmt.Sprintf("%s: %s \n%s: %s\n\n%s: %s\n\n%s:\n%s",
+				lipgloss.NewStyle().Render(" Status"),
+				lipgloss.NewStyle().Foreground(lipgloss.Color(data.ColorResponse(m.response.StatusCode))).Render(strings.TrimSpace(m.response.Status)),
 				lipgloss.NewStyle().Bold(true).Render("󰿘 Protocol"),
 				lipgloss.NewStyle().Foreground(lipgloss.Color("#b0b0b0")).Render(strings.TrimSpace(m.response.Proto)),
-				lipgloss.NewStyle().Foreground(lipgloss.Color(data.ColorResponse(m.response.StatusCode))).Bold(true).Render(" Status"),
-				lipgloss.NewStyle().Foreground(lipgloss.Color(data.ColorResponse(m.response.StatusCode))).Render(strings.TrimSpace(m.response.Status)),
 				lipgloss.NewStyle().Bold(true).Render("Payload"),
-				lipgloss.NewStyle().Foreground(lipgloss.Color("#b0b0b0")).Render((Response)),
+				lipgloss.NewStyle().Foreground(lipgloss.Color("#dedede")).Render(strings.TrimSpace(Response)),
 				lipgloss.NewStyle().Bold(true).Render("󰓹 Headers"),
 				prettyHeaders(m.response.Header),
 			),
@@ -127,7 +127,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 						m.sidebar.Cursor = 0
 						if len(tokens) > 0 {
 							m.currentRequest = tokens[0]
-							m.viewer.Viewport.SetContent(m.currentRequest.Print())
+							m.viewer.Viewport.SetContent(m.currentRequest.PrintV2())
 						} else {
 							m.currentRequest = models.Tokens{}
 							m.viewer.Viewport.SetContent("")
@@ -161,7 +161,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.responseBody = ""
 				m.currentRequest = m.sidebar.Requests[m.sidebar.Cursor]
 
-				m.viewer.Viewport.SetContent(m.currentRequest.Print())
+				m.viewer.Viewport.SetContent(m.currentRequest.PrintV2())
 				m.viewer.Viewport.GotoTop()
 			}
 
@@ -210,7 +210,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 
 			m.currentRequest = m.sidebar.Requests[m.sidebar.Cursor]
-			m.viewer.Viewport.SetContent(m.currentRequest.Print())
+			m.viewer.Viewport.SetContent(m.currentRequest.PrintV2())
 			m.viewer.Viewport.GotoTop()
 
 		case "c":
@@ -218,7 +218,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.response.StatusCode = 0
 			m.responseBody = ""
 
-			m.viewer.Viewport.SetContent(m.currentRequest.Print())
+			m.viewer.Viewport.SetContent(m.currentRequest.PrintV2())
 			m.viewer.Viewport.GotoTop()
 		}
 

@@ -25,7 +25,7 @@ func (m Model) View() string {
 	}
 
 	footerText := fmt.Sprintf(" %s ", percentStr)
-	footerStyle := lipgloss.NewStyle().Foreground(lipgloss.Color("#ececec")).Italic(true)
+	footerStyle := lipgloss.NewStyle().Foreground(lipgloss.Color("#dedede")).Italic(true)
 	footerVal := footerStyle.Render(footerText)
 
 	width := m.Viewport.Width()
