@@ -21,6 +21,23 @@ Note: make sure there is at least one http file on the working directory you are
 
 ---
 
+## Customization
+
+A TOML config file will be generated in your config directory:
+
+- `~/.config/apio/config.toml`.
+
+You can customize some aspects of Apio, such as:<br/>
+
+- Sidebar positioning (left or right)
+- Enable/disable glyphs (Any [nerd font](https://www.nerdfonts.com/font-downloads) is required to display icons)
+- Enable/disable borders
+- Colors.
+
+Do not delete the config file, please. *(for now)*
+
+---
+
 ## Keybindings
 
 Navigating and running requests in `apio` is straightforward:
@@ -50,40 +67,24 @@ No need to reload manually anymore. It automatically reloads when you change the
 ### Global variables
 @api = jsonplaceholder.typicode.com
 @contentType = application/json
+@username = twodigitss
 
-### Get a post
-GET https://{{api}}/posts/1
-Accept: {{contentType}}
+### Average api endpoint
+GET https://httpbin.org/status/201
+Accept: application/json
 
-### Create a new post
-POST https://{{api}}/posts
+### Composed with variables and set protocol
+POST https://{{api}}/posts HTTP/3.0
 Content-Type: {{contentType}}
 Token: Bearer your-jwt-token-here
 
 {
-  "title": "Testing apio",
-  "body": "Sent from the terminal",
-  "userId": 1,
-  "api": {{api}}
+  "body": "sent from apio",
+  "title": "apio test",
+  "user": {{username}},
+  "userId": 3,
 }
 ```
-
----
-
-## Customization
-
-If you run `./build.sh install`, a TOML config file will be generated in your config directory:
-
-- `~/.config/apio/config.toml`.
-
-You can customize some aspects of Apio, such as:<br/>
-
-- Sidebar positioning (left or right)
-- Enable/disable glyphs (Any [nerd font](https://www.nerdfonts.com/font-downloads) is required to display icons)
-- Enable/disable borders
-- Colors.
-
-Do not delete the file (please).
 
 ---
 
