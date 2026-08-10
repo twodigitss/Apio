@@ -2,7 +2,7 @@
 
 > Minimalist HTTP file reader and runner for your terminal.
 
-**Apio** is a lightweight and minimal TUI tool designed for developers who prefer defining HTTP requests in plain text files (such as `.http` or `.rest` files) rather than using heavy GUI clients.
+**Apio** is a lightweight and minimal TUI tool designed for developers who prefer defining HTTP requests in plain text files (such as [`.http` or `.rest` files](https://http-files.org/)) rather than using heavy GUI clients.
 
 There is similar tools, such as Posting and Noodle, but i tried to focus on just reading and executing `http` files because i dont actually want to build another TUI Postman.
 Apio lets you execute your HTTP files interactively inside a Terminal.
@@ -42,7 +42,7 @@ No need to reload manually anymore. It automatically reloads when you change the
 
 ---
 
-## Supported `.http` File Format
+## Supported `.http` / `.rest` File Format
 
 `apio` supports standard plain-text HTTP client syntax. For example:
 
@@ -79,7 +79,7 @@ If you run `./build.sh install`, a TOML config file will be generated in your co
 You can customize some aspects of Apio, such as:<br/>
 
 - Sidebar positioning (left or right)
-- Enable/disable glyphs
+- Enable/disable glyphs (Any [nerd font](https://www.nerdfonts.com/font-downloads) is required to display icons)
 - Enable/disable borders
 - Colors.
 
