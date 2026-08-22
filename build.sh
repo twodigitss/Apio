@@ -23,7 +23,7 @@ go build -ldflags="-s -w" -o "$OUT_BIN" "$SRC_FILE"
 SIZE_STRIPPED=$(du -h "$OUT_BIN" | cut -f1)
 echo "✓ Compiled size (stripped): $SIZE_STRIPPED"
 
- Install if 'install' or '--install' argument is provided
+# Install if 'install' or '--install' argument is provided
 if [ "$1" = "install" ] || [ "$1" = "--install" ]; then
     echo "Installing binary to ~/.local/bin/apio..."
     mkdir -p "$HOME/.local/bin"

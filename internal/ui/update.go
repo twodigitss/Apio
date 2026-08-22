@@ -20,7 +20,7 @@ import (
 )
 
 type RunResponseMsg struct {
-	Response http.Response
+	Response *http.Response
 	Body     string
 	Err      error
 }
@@ -72,7 +72,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.viewer.Loading = false
 
 		if msg.Err != nil {
-			m.response = http.Response{}
+			m.response = nil
 			m.responseBody = fmt.Sprintf("Error: %v", msg.Err)
 			m.viewer.Viewport.SetContent(m.responseBody)
 			m.viewer.Viewport.GotoTop()
@@ -192,7 +192,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 		case "up", "k", "down", "j":
 			if len(m.sidebar.Requests) > 0 {
-				m.response = http.Response{}
+				m.response = nil
 				m.responseBody = ""
 				m.currentRequest = m.sidebar.Requests[m.sidebar.Cursor]
 				m.viewer.SetColor(data.GetColorByHttpMethod(m.currentRequest.Method))
@@ -250,8 +250,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		// 	m.viewer.Viewport.GotoTop()
 
 		case "c":
-			m.response.Body = nil
-			m.response.StatusCode = 0
+			m.response = nil
 			m.responseBody = ""
 
 			m.viewer.Viewport.SetContent(m.currentRequest.PrintV2(cfg.UI.Glyphs))

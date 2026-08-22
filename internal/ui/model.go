@@ -27,7 +27,7 @@ type Model struct {
 	selectingFile  bool
 	currentRequest models.Tokens
 
-	response     http.Response
+	response     *http.Response
 	responseBody string
 
 	Width    int
@@ -62,7 +62,7 @@ func New(dir []os.DirEntry, file []byte) Model {
 	return Model{
 		selectingFile:  len(dir) > 1,
 		currentRequest: currentRequest,
-		response:       http.Response{},
+		response:       nil,
 		sidebar:        sidebar.New(tokens),
 		fileSelection:  fileselection.New(dir),
 		viewer:         viewer.New(initialContent, data.GetColorByHttpMethod(currentRequest.Method)),

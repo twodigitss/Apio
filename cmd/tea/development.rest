@@ -1,6 +1,41 @@
 @api = jsonplaceholder.typicode.com
 @user = twodigitss
 
+###
+POST https://httpbin.org/post
+Content-Type: multipart/form-data; boundary=----ApioFileBoundary
+
+------ApioFileBoundary
+Content-Disposition: form-data; name="description"
+
+archivo de prueba
+------ApioFileBoundary
+Content-Disposition: form-data; name="file"; filename="test.txt"
+Content-Type: text/plain
+
+contenido del archivo aqui
+------ApioFileBoundary--
+
+###
+POST https://httpbin.org/post
+Content-Type: multipart/form-data; boundary=----ApioTestBoundary
+
+------ApioTestBoundary
+Content-Disposition: form-data; name="username"
+
+twodigitss
+------ApioTestBoundary
+Content-Disposition: form-data; name="email"
+
+test@example.com
+------ApioTestBoundary--
+
+###
+POST https://httpbin.org/post
+Content-Type: application/x-www-form-urlencoded
+
+grant_type=client_credentials&client_id=foo
+
 ### 13. 418 I'm a Teapot - GET (código real de la RFC 2324, httpbin lo soporta)
 GET https://httpbin.org/status/301 HTTP/3.0
 Content-Type: application/json
