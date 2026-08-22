@@ -1,4 +1,7 @@
 # Visual aspects of the TUI
+[CORE]
+timeout = "10s"
+
 [UI]
 glyphs  = true    # Requires any nerd font to work.
 sidebar = "left"  # Values: left or right

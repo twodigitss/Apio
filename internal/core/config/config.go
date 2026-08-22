@@ -10,19 +10,24 @@ import (
 // var defaultPath string = shared.ExpandPath("~/Projects/apio/cmd/tea/config.toml")
 var defaultPath string = shared.ExpandPath("~/.config/apio/config.toml")
 
-type Config struct {
-	UI     UIConfig
-	Colors ColorsConfig
+type config struct {
+	Core   coreConfig
+	UI     uIConfig
+	Colors colorsConfig
 	Path   string
 }
 
-type UIConfig struct {
+type coreConfig struct {
+	Timeout string
+}
+
+type uIConfig struct {
 	Glyphs  bool
 	Sidebar string
 	Borders bool
 }
 
-type ColorsConfig struct {
+type colorsConfig struct {
 	GET     string
 	POST    string
 	PUT     string
@@ -41,7 +46,7 @@ type ColorsConfig struct {
 	INFRABORDER string
 }
 
-func Fallback[T comparable](value, fallback T) T {
+func fallback[T comparable](value, fallback T) T {
 	var zero T
 	if value == zero {
 		return fallback
@@ -49,46 +54,50 @@ func Fallback[T comparable](value, fallback T) T {
 	return value
 }
 
-func Default() Config {
+func Default() config {
 	raw := readRawCfg()
 
-	return Config{
-		Path: Fallback(raw.Path, defaultPath),
-		UI: UIConfig{
-			// ponytail: *bool needed — false is zero value so Fallback can't detect "absent"
+	return config{
+		Core: coreConfig{
+			Timeout: fallback(raw.Core.Timeout, "10s"),
+		},
+		Path: fallback(raw.Path, defaultPath),
+		UI: uIConfig{
+			// ponytail: *bool needed — false is zero value so fallback can't detect "absent"
 			Glyphs:  fallbackBool(raw.UI.Glyphs, true),
-			Sidebar: Fallback(raw.UI.Sidebar, "left"),
+			Sidebar: fallback(raw.UI.Sidebar, "left"),
 			Borders: fallbackBool(raw.UI.Borders, true),
 		},
-		Colors: ColorsConfig{
-			GET:     Fallback(raw.Colors.GET, "#A8E6CF"),
-			POST:    Fallback(raw.Colors.POST, "#FFD3B6"),
-			PUT:     Fallback(raw.Colors.PUT, "#A9DEF9"),
-			DELETE:  Fallback(raw.Colors.DELETE, "#FFADAD"),
-			PATCH:   Fallback(raw.Colors.PATCH, "#D8B4F8"),
-			HEAD:    Fallback(raw.Colors.HEAD, "#A0E7E5"),
-			OPTIONS: Fallback(raw.Colors.OPTIONS, "#FFC6FF"),
-			EXTRA:   Fallback(raw.Colors.EXTRA, "#b3e6a8"),
+		Colors: colorsConfig{
+			GET:     fallback(raw.Colors.GET, "#A8E6CF"),
+			POST:    fallback(raw.Colors.POST, "#FFD3B6"),
+			PUT:     fallback(raw.Colors.PUT, "#A9DEF9"),
+			DELETE:  fallback(raw.Colors.DELETE, "#FFADAD"),
+			PATCH:   fallback(raw.Colors.PATCH, "#D8B4F8"),
+			HEAD:    fallback(raw.Colors.HEAD, "#A0E7E5"),
+			OPTIONS: fallback(raw.Colors.OPTIONS, "#FFC6FF"),
+			EXTRA:   fallback(raw.Colors.EXTRA, "#b3e6a8"),
 
-			TEXT:      Fallback(raw.Colors.TEXT, "#F5F5F5"),
-			SUBTEXT:   Fallback(raw.Colors.SUBTEXT, "#CECECE"),
-			INFRATEXT: Fallback(raw.Colors.INFRATEXT, "#ABABAB"),
+			TEXT:      fallback(raw.Colors.TEXT, "#F5F5F5"),
+			SUBTEXT:   fallback(raw.Colors.SUBTEXT, "#CECECE"),
+			INFRATEXT: fallback(raw.Colors.INFRATEXT, "#ABABAB"),
 
-			BORDER:      Fallback(raw.Colors.BORDER, "#F5F5F5"),
-			SUBBORDER:   Fallback(raw.Colors.SUBBORDER, "#4A4A4A"),
-			INFRABORDER: Fallback(raw.Colors.INFRABORDER, "#2A2A2A"),
+			BORDER:      fallback(raw.Colors.BORDER, "#F5F5F5"),
+			SUBBORDER:   fallback(raw.Colors.SUBBORDER, "#4A4A4A"),
+			INFRABORDER: fallback(raw.Colors.INFRABORDER, "#2A2A2A"),
 		},
 	}
 }
 
 // rawConfig is only used during parsing so *bool can distinguish absent vs false.
 type tomlCfg struct {
-	UI struct {
+	Core coreConfig `toml:"core"`
+	UI   struct {
 		Glyphs  *bool  `toml:"glyphs"`
 		Sidebar string `toml:"sidebar"`
 		Borders *bool  `toml:"borders"`
 	} `toml:"ui"`
-	Colors ColorsConfig `toml:"colors"`
+	Colors colorsConfig `toml:"colors"`
 	Path   string       `toml:"path"`
 }
 
@@ -96,7 +105,7 @@ func readRawCfg() tomlCfg {
 	var raw tomlCfg
 	data, err := os.ReadFile(defaultPath)
 	if err != nil {
-		panic(err)
+		return tomlCfg{}
 	}
 	if err = toml.Unmarshal(data, &raw); err != nil {
 		panic(err)
