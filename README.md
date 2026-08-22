@@ -34,8 +34,6 @@ You can customize some aspects of Apio, such as:<br/>
 - Enable/disable borders
 - Colors.
 
-Do not delete the config file, please. *(for now)*
-
 ---
 
 ## Keybindings
